@@ -1,0 +1,79 @@
+<md-button class="md-fab md-primary md-hue-2 chat-fab" aria-label="Open Chat Window" ng-click="vm.panelsToggle()">
+    <ng-md-icon icon="people"></ng-md-icon>
+</md-button>
+
+<div class="chat-panel-wrapper" ng-class="{'toggle-chat': vm.chatToggle === true}" layout="column" ng-cloak>
+    <md-toolbar>
+        <div class="md-toolbar-tools">
+            <h2 class="md-flex">{{user.username}}</h2>
+        </div>
+    </md-toolbar>
+    <md-content flex>
+        <md-tabs md-dynamic-height md-center-tabs md-stretch-tabs="always" md-no-pagination>
+            <md-tab label="Users" class="user-tab">
+                <md-toolbar layout="column" layout-align="center center">
+                    <div flex class="md-toolbar-tools" layout="row">
+                        <input type="text" ng-model="vm.userSearch">
+                        <span flex></span>
+                        <ng-md-icon icon="search"></ng-md-icon>
+                    </div>
+                </md-toolbar>
+                <md-list flex>
+                    <md-list-item class="md-3-line" ng-repeat="userr in vm.users | filter: vm.userSearch" ng-if="userr._id != user._id" ng-click="vm.changeChatInstance(userr)">
+                        <div class="md-list-item-text user" layout="row">
+                            <h3>{{userr.fullName}}</h3>
+                            <span flex></span>
+                            <ng-md-icon icon="chat" ng-show="userr.newText"></ng-md-icon>
+                        </div>
+                    </md-list-item>
+                    <div ng-if="vm.users.length <= 1 && userr._id != user._id">
+                        All users are offline!
+                    </div>
+                </md-list>
+            </md-tab>
+            <md-tab label="Rooms">
+                <md-toolbar layout="column" layout-align="center center">
+                    <div flex class="md-toolbar-tools" layout="row">
+                        <input type="text" ng-model="vm.createRoomName">
+                        <span flex></span>
+                        <md-button class="md-button md-accent md-raised" ng-click="vm.createRoom(vm.createRoomName)">
+                            Add Room
+                        </md-button>
+                    </div>
+                    <div flex class="md-toolbar-tools" layout="row">
+                        <input type="text" ng-model="vm.searchRoomName">
+                        <span flex></span>
+                        <ng-md-icon icon="search"></ng-md-icon>
+                    </div>
+                </md-toolbar>
+                <md-list flex>
+                    <md-list-item class="md-3-line" ng-repeat="room in vm.rooms | filter: vm.searchRoomName" ng-click="vm.changeRoomInstance(room)">
+                        <div class="md-list-item-text" layout="row">
+                            <h3>{{room.name}}</h3>
+                            <span flex></span>
+                        </div>
+                    </md-list-item>
+                </md-list>
+            </md-tab>
+            <md-tab label="Favourites">
+                <img ng-src="{{vm.imageSrc}}" alt="">
+            </md-tab>
+        </md-tabs>
+    </md-content>
+</div>
+<chat-room
+        toggled="vm.roomToggle"
+        all-users="vm.users"
+        room-instance="vm.roomInstance"
+        msg-send-function="vm.sendMsgToRoomInstance"
+        add-user-to-room="vm.addUserToRoom"
+>
+</chat-room>
+<chat-single
+        toggled="vm.singleToggle"
+        chat-instance="vm.chatInstance"
+        msg-send-function="vm.sendMsgToChatInstance"
+        file-upload="vm.fileUpload"
+        download-file="vm.downloadFile"
+>
+</chat-single>

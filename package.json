@@ -1,0 +1,22 @@
+{
+  "name": "chat",
+  "version": "0.0.1",
+  "description": "chat app",
+  "main": "server.js",
+  "scripts": {
+    "run-db": "mongod --dbpath db/MongoDb/data",
+    "start": "gulp compile-sass | node server.js"
+  },
+  "devDependencies": {
+    "express": "^4.14.0",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.4.0",
+    "mongoose": "^4.7.6",
+    "socket.io": "^1.7.2",
+    "body-parser": "1.15.2"
+  },
+  "dependencies": {
+    "socketio-file-upload": "^0.6.0"
+  }
+}

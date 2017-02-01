@@ -1,0 +1,13 @@
+node_modules
+bower_components
+typings
+.idea
+_windows
+!.gitkeep
+tmp
+.DS_Store
+.vscode
+public/styles/**/*.css
+!public/styles/lib/*.css
+public/styles/**/*.css.map
+.sass-cache

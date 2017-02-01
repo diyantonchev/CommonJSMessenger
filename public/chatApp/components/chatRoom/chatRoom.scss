@@ -1,0 +1,12 @@
+chat-room{
+  md-whiteframe{
+    position: fixed;
+    height: 500px;
+    width: 500px;
+    right: 400px;
+    bottom: 0;
+    md-content{
+      width: 100%;
+    }
+  }
+}
