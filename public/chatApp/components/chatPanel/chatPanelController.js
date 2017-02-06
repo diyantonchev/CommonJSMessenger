@@ -34,7 +34,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
 
     vm.socket = io.connect();
 
-    vm.socket.on('connect_error', function(err) {
+    vm.socket.on('connect_error', function (err) {
         let url = "http://" + $window.location.host + "/disconnect";
         $window.location.href = url;
     });
@@ -67,15 +67,15 @@ function ChatPanelCtrl($scope, dataservice, $window) {
             else {
                 msg.styleClass = 'friend'
             }
-            if(!msg.isFile) {
+            if (!msg.isFile) {
                 vm.chatInstance.messages.push(msg);
             }
-            else{
-                if(msg.extension == "jpg" || msg.extension == "png"){
+            else {
+                if (msg.extension == "jpg" || msg.extension == "png") {
                     msg.isImg = true;
                     vm.chatInstance.messages.push(msg);
                 }
-                else{
+                else {
                     msg.isImg = false;
                     vm.chatInstance.messages.push(msg);
                 }
@@ -112,15 +112,15 @@ function ChatPanelCtrl($scope, dataservice, $window) {
         else {
             msg.styleClass = 'friend'
         }
-        if(!msg.isFile) {
+        if (!msg.isFile) {
             vm.chatInstance.messages.push(msg);
         }
-        else{
-            if(msg.extension == "jpg" || msg.extension == "png"){
+        else {
+            if (msg.extension == "jpg" || msg.extension == "png") {
                 msg.isImg = true;
                 vm.chatInstance.messages.push(msg);
             }
-            else{
+            else {
                 msg.isImg = false;
                 vm.chatInstance.messages.push(msg);
             }
@@ -132,11 +132,11 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     vm.socket.on($scope.user._id, (data) => {
         let isRoom = false;
         vm.rooms.forEach(room => {
-            if(room._id == data._id) {
+            if (room._id == data._id) {
                 isRoom = true;
             }
         });
-        if(!isRoom){
+        if (!isRoom) {
             vm.rooms.push(data);
         }
     });
@@ -153,15 +153,15 @@ function ChatPanelCtrl($scope, dataservice, $window) {
             else {
                 msg.styleClass = 'friend'
             }
-            if(!msg.isFile) {
+            if (!msg.isFile) {
                 vm.roomInstance.messages.push(msg);
             }
-            else{
-                if(msg.extension == "jpg" || msg.extension == "png"){
+            else {
+                if (msg.extension == "jpg" || msg.extension == "png") {
                     msg.isImg = true;
                     vm.roomInstance.messages.push(msg);
                 }
-                else{
+                else {
                     msg.isImg = false;
                     vm.roomInstance.messages.push(msg);
                 }
@@ -178,15 +178,15 @@ function ChatPanelCtrl($scope, dataservice, $window) {
         else {
             msg.styleClass = 'friend'
         }
-        if(!msg.isFile) {
+        if (!msg.isFile) {
             vm.roomInstance.messages.push(msg);
         }
-        else{
-            if(msg.extension == "jpg" || msg.extension == "png"){
+        else {
+            if (msg.extension == "jpg" || msg.extension == "png") {
                 msg.isImg = true;
                 vm.roomInstance.messages.push(msg);
             }
-            else{
+            else {
                 msg.isImg = false;
                 vm.roomInstance.messages.push(msg);
             }
@@ -238,7 +238,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     }
 
     function changeRoomInstance(room) {
-        vm.socket.emit('join-room', {room:room, user: $scope.user});
+        vm.socket.emit('join-room', {room: room, user: $scope.user});
         vm.roomToggle = true;
         vm.singleToggle = false;
     }
@@ -266,16 +266,18 @@ function ChatPanelCtrl($scope, dataservice, $window) {
 
     function fileUpload(file) {
         let fileExtension = file.name.split('.').pop();
+
         let stream = ss.createStream();
         // upload a file to the server.
         ss(vm.socket).emit('fileUpload', stream,
             {
                 size: file.size,
                 extension: fileExtension,
-                roomId:vm.chatInstance._id,
-                author:$scope.user.fullName,
+                roomId: vm.chatInstance._id,
+                author: $scope.user.fullName,
             });
         ss.createBlobReadStream(file).pipe(stream);
+
     }
 
     function chatFileUpload(file) {
@@ -286,16 +288,22 @@ function ChatPanelCtrl($scope, dataservice, $window) {
             {
                 size: file.size,
                 extension: fileExtension,
-                roomId:vm.roomInstance._id,
-                author:$scope.user.fullName,
+                roomId: vm.roomInstance._id,
+                author: $scope.user.fullName,
             });
         ss.createBlobReadStream(file).pipe(stream);
     }
 
     function fileDownload(filePath, fileExtension) {
-        let filepath = filePath + '.' + fileExtension;
-        dataservice.downloadFile(filepath).then((response) => {
-            console.log(response);
+        let file = filePath + '.' + fileExtension;
+        dataservice.downloadFile(file).then((response) => {
+            let a = document.createElement('a');
+            a.setAttribute('style', 'display:none');
+            a.setAttribute('href', 'data:application/octet-stream,' + encodeURIComponent(response));
+            a.setAttribute('download', (filePath || 'Export') + '.' + fileExtension)
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         });
     }
 

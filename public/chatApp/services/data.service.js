@@ -53,8 +53,8 @@ function dataservice($http) {
     function downloadFile(filePath) {
         return $http({
             url: '/download',
-            method: "GET",
-            params: { filePath: filePath }
+            method: "POST",
+            data: { filePath: filePath }
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);

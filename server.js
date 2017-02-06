@@ -181,10 +181,10 @@ io.sockets.on('connection', (socket) => {
             room.users.splice(index, 1);
             Room.findByIdAndUpdate(data.room._id, {
                 $set: {
-                    'users':room.users
+                    'users': room.users
                 }
-            },{safe: true, new: true, upsert: true}, (err, newRoom) => {
-                if(err){
+            }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
+                if (err) {
                     console.log(err);
                 }
 
@@ -320,9 +320,9 @@ io.sockets.on('connection', (socket) => {
     //         });
     // });
 
-    app.get('/download', (req, res) => {
-        let file = path.join(__dirname, 'public/files' , req.query.filePath);
-        res.download(file);
+    app.post('/download', (req, res) => {
+        let file = path.join(__dirname, 'public/files', req.body.filePath);
+        res.download(file, req.body.filePath);
     });
 
 
