@@ -8,6 +8,7 @@ function dataservice($http) {
         login: login,
         createNewRoom: createNewRoom,
         getUsersData: getUsersData,
+        downloadFile: downloadFile,
         getRoomsData: getRoomsData,
         createSingleChat: createSingleChat,
         addGroupChat: addGroupChat,
@@ -44,6 +45,16 @@ function dataservice($http) {
             url: '/getRooms',
             method: "GET",
             params: { loggedUser: userId }
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+    function downloadFile(filePath) {
+        return $http({
+            url: '/download',
+            method: "GET",
+            params: { filePath: filePath }
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);

@@ -1,46 +1,48 @@
 <md-whiteframe class="md-whiteframe-2dp" layout="column" layout-align="center center" ng-show="toggled">
     <md-toolbar class="md-primary md-hue-2" layout="row" layout-align="center center">
         <div flex class="md-toolbar-tools">
-            <h2 class="md-flex">
+            <h2 class="md-flex room-name" ng-mouseover="vm.userTooltip = true" ng-mouseleave="vm.userTooltip = false">
                 {{roomInstance.name}}
+                <div class="users-tooltip" ng-init="vm.userTooltip = false" ng-show="vm.userTooltip == true">
+                    <p ng-repeat="user in roomInstance.users">
+                        {{user.username}}
+                    </p>
+                </div>
             </h2>
-            <md-tooltip md-direction="top">
-                <p ng-repeat="user in roomInstance.roomUsers">
-                    {{user.name}}
-                </p>
-            </md-tooltip>
         </div>
         <span flex></span>
 
         <md-menu>
-            <md-button ng-click="$mdOpenMenu($event)" class="md-icon-button md-primary" aria-label="Open sample menu">
+            <md-button ng-click="$mdOpenMenu($event)" class="md-icon-button" aria-label="Open sample menu">
                 <ng-md-icon flex icon="settings">
             </md-button>
             <md-menu-content>
                 <md-menu-item>
-                    <md-button aria-label="Add User to Room" layout="row" layout-align="center center" ng-click="vm.roomToolsPanel = true;">
+                    <md-button aria-label="Add User to Room" layout="row" layout-align="center center"
+                               ng-click="vm.roomToolsPanel = true;">
                         <span flex>Add User</span>
                     </md-button>
                 </md-menu-item>
                 <!--<md-menu-item>-->
-                    <!--<md-button aria-label="Remove User From Room" layout="row" layout-align="center center">-->
-                        <!--<span flex>Remove User</span>-->
-                    <!--</md-button>-->
+                <!--<md-button aria-label="Remove User From Room" layout="row" layout-align="center center">-->
+                <!--<span flex>Remove User</span>-->
+                <!--</md-button>-->
                 <!--</md-menu-item>-->
                 <md-menu-item>
                     <md-button aria-label="Delete Room" layout="row" layout-align="center center">
-                        <span flex>Delete Room</span>
+                        <span flex>Leave Room</span>
                     </md-button>
                 </md-menu-item>
             </md-menu-content>
         </md-menu>
 
 
-        <md-button class="md-icon-button md-primary" aria-label="Close Room" ng-click="vm.closeRoomInstance()">
+        <md-button class="md-icon-button" aria-label="Close Room" ng-click="vm.closeRoomInstance()">
             <ng-md-icon flex icon="close"></ng-md-icon>
         </md-button>
     </md-toolbar>
-    <md-toolbar layout="row" layout-align="center center" ng-init="vm.roomToolsPanel = false" ng-show="vm.roomToolsPanel">
+    <md-toolbar layout="row" layout-align="center center" ng-init="vm.roomToolsPanel = false"
+                ng-show="vm.roomToolsPanel">
         <div flex class="md-toolbar-tools">
             <md-autocomplete
                     md-no-cache="true"
@@ -60,32 +62,51 @@
                 </md-not-found>
             </md-autocomplete>
             <span flex></span>
-            <md-button class="md-raised md-primary" flex ng-disabled="!vm.selectedUser" ng-click="addUserToRoom(vm.selectedUser, roomInstance)">Add User</md-button>
+            <md-button class="md-raised md-primary" flex ng-disabled="!vm.selectedUser"
+                       ng-click="addUserToRoom(vm.selectedUser, roomInstance)">Add User
+            </md-button>
             <md-button class="md-raised md-primary" flex ng-click="vm.roomToolsPanel = false;">Close</md-button>
         </div>
     </md-toolbar>
 
     <md-content flex layout-padding scroll-events chat-instance="roomInstance.messages">
-        <md-list flex>
-            <md-list-item class="md-3-line" ng-repeat="msg in roomInstance.messages">
-                <div class="md-list-item-text" layout="row">
-                    <div flex="80" layout="column" layout-padding>
-                        <h4>{{msg.author}}</h4>
-                        <h3>{{msg.text}}</h3>
-                    </div>
-                    <div flex>
-                        <span title="{{msg.date| date:'yyyy-MM-dd HH:mm:ss'}}">{{msg.date | date:'HH:mm:ss'}}</span>
-                    </div>
+        <!--<md-list flex>-->
+        <!--<md-list-item class="md-3-line" ng-repeat="msg in roomInstance.messages">-->
+        <!--<div class="md-list-item-text" layout="row">-->
+        <!--<div flex="80" layout="column" layout-padding>-->
+        <!--<h4>{{msg.author}}</h4>-->
+        <!--<h3>{{msg.text}}</h3>-->
+        <!--</div>-->
+        <!--<div flex>-->
+        <!--<span title="{{msg.date| date:'yyyy-MM-dd HH:mm:ss'}}">{{msg.date | date:'HH:mm:ss'}}</span>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<md-divider ng-if="!$last"></md-divider>-->
+        <!--</md-list-item>-->
+        <!--</md-list>-->
+        <div class="room-message" ng-class="msg.styleClass" ng-repeat="msg in roomInstance.messages">
+            <div class="room-message-wrapper">
+                <div>{{msg.author}}</div>
+                <div class="msg">
+                    <span ng-if="!msg.isFile">{{msg.text}}</span>
+                    <img class="msg-img" ng-if="msg.isImg && msg.isFile" ng-src="files/{{msg._id}}.{{msg.extension}}">
+                    <a ng-if="!msg.isImg && msg.isFile" ng-click="fileDownload(msg._id, msg.extension)">{{msg._id}}.{{msg.extension}}</a>
+                    <md-tooltip md-direction="right" md-z-index="9999">{{msg.date| date:'HH:mm:ss'}}</md-tooltip>
                 </div>
-                <md-divider ng-if="!$last"></md-divider>
-            </md-list-item>
-        </md-list>
+            </div>
+        </div>
     </md-content>
     <md-toolbar layout-padding class="md-primary md-hue-2" layout="row" layout-align="center center">
-        <input flex="60" type="text" placeholder="Type a message..." ng-model="vm.msgToSend" input-model="vm.msgToSend" focus-enter send-func="vm.msgSendFunction(roomInstance, vm.msgToSend)">
-        <md-button class="md-icon-button md-primary" aria-label="Attach File">
-            <ng-md-icon flex icon="attach_file"></ng-md-icon>
+        <input flex="60" type="text" placeholder="Type a message..." ng-model="vm.msgToSend" input-model="vm.msgToSend"
+               focus-enter send-func="vm.msgSendFunction(roomInstance, vm.msgToSend)">
+        <md-button class="md-icon-button" aria-label="Attach File">
+            <label for="chat-file-input">
+                <ng-md-icon flex icon="attach_file"></ng-md-icon>
+            </label>
         </md-button>
-        <md-button class="md-raised md-primary" flex ng-click="vm.msgSendFunction(roomInstance, vm.msgToSend)" ng-disabled="!vm.msgToSend">Send</md-button>
+        <input id="chat-file-input" type="file" style="opacity: 0;height: 0; width: 0; position: absolute; z-index: -1;" fileread="fileUpload">
+        <md-button class="md-raised md-primary" flex ng-click="vm.msgSendFunction(roomInstance, vm.msgToSend)"
+                   ng-disabled="!vm.msgToSend">Send
+        </md-button>
     </md-toolbar>
 </md-whiteframe>

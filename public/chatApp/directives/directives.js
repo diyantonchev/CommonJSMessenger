@@ -12,11 +12,6 @@ angular.module('chat').directive('scrollEvents', function($timeout) {
                     }, 0);
                 }
             });
-            // element.bind("scroll", function () {
-            //     if(element[0].scrollTop ===  0){
-            //         scope.socket.emit('scroll', scope.room);
-            //     }
-            // });
         }
     };
 });
@@ -44,15 +39,10 @@ angular.module('chat').directive("fileread", [function () {
             fileread: '='
         },
         link: function (scope, element) {
-            element.bind("change", function (changeEvent) {
-                let reader = new FileReader();
-                reader.onload = function (loadEvent) {
-                    scope.$apply(function () {
-                        scope.fileread(loadEvent.target.result, element[0].value);
-                        element[0].value = "";
-                    });
-                }
-                reader.readAsDataURL(changeEvent.target.files[0]);
+            element.bind("change", function (e) {
+                let file = e.target.files[0];
+                scope.fileread(file);
+                element[0].value = "";
             });
         }
     }

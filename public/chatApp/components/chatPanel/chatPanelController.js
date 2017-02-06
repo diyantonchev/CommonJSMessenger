@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$sce'];
+ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$window'];
 
-function ChatPanelCtrl($scope, dataservice, $sce) {
+function ChatPanelCtrl($scope, dataservice, $window) {
 
 
     let vm = this;
@@ -24,7 +24,9 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
     vm.sendMsgToRoomInstance = sendMsgToRoomInstance;
     vm.addUserToRoom = addUserToRoom;
     vm.fileUpload = fileUpload;
-    vm.downloadFile = downloadFile;
+    vm.chatFileUpload = chatFileUpload;
+    vm.fileDownload = fileDownload;
+
     //Init Functions
     // getUsersData();
 
@@ -32,9 +34,16 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
 
     vm.socket = io.connect();
 
+    vm.socket.on('connect_error', function(err) {
+        let url = "http://" + $window.location.host + "/disconnect";
+        $window.location.href = url;
+    });
+
     vm.socket.on('login', (message) => {
         vm.socket.emit('users', $scope.user._id);
         vm.socket.emit('rooms', $scope.user._id);
+    }, (err) => {
+        console.log(err);
     });
 
     vm.socket.on('users', (data) => {
@@ -42,10 +51,6 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
             return JSON.parse(user);
         });
         $scope.$apply();
-    });
-
-    vm.socket.on($scope.user._id, (data) => {
-        vm.rooms.push(data);
     });
 
     vm.socket.on('chats', (data) => {
@@ -64,6 +69,16 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
             }
             if(!msg.isFile) {
                 vm.chatInstance.messages.push(msg);
+            }
+            else{
+                if(msg.extension == "jpg" || msg.extension == "png"){
+                    msg.isImg = true;
+                    vm.chatInstance.messages.push(msg);
+                }
+                else{
+                    msg.isImg = false;
+                    vm.chatInstance.messages.push(msg);
+                }
             }
         });
         if (vm.chatInstance.user1._id == $scope.user._id) {
@@ -89,52 +104,93 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
     });
 
     vm.socket.on('chat-connection', (msg) => {
+
+
         if ($scope.user.fullName == msg.author) {
             msg.styleClass = 'user'
         }
         else {
             msg.styleClass = 'friend'
         }
-        vm.chatInstance.messages.push(msg);
+        if(!msg.isFile) {
+            vm.chatInstance.messages.push(msg);
+        }
+        else{
+            if(msg.extension == "jpg" || msg.extension == "png"){
+                msg.isImg = true;
+                vm.chatInstance.messages.push(msg);
+            }
+            else{
+                msg.isImg = false;
+                vm.chatInstance.messages.push(msg);
+            }
+        }
         $scope.$apply();
+
     });
 
-    vm.socket.on('chat-connection-file', (file) => {
-        if ($scope.user.fullName == file.author) {
-            file.styleClass = 'user'
+    vm.socket.on($scope.user._id, (data) => {
+        let isRoom = false;
+        vm.rooms.forEach(room => {
+            if(room._id == data._id) {
+                isRoom = true;
+            }
+        });
+        if(!isRoom){
+            vm.rooms.push(data);
         }
-        else {
-            file.styleClass = 'friend'
-        }
-        if (file.isImage) {
-            let img = $sce.trustAsHtml(`<img class="msg-img" src="${file.text}" title="${file.date}"/>`);
-            vm.chatInstance.messages.push({
-                text: img,
-                author: file.author,
-                styleClass: file.styleClass,
-                date: file.date
-            });
-        }
-        else {
-            vm.chatInstance.messages.push({
-                data: file.text,
-                text: file.fileName,
-                _id: file._id,
-                author: file.author,
-                styleClass: file.styleClass,
-                date: file.date,
-                isFile: true
-            });
-        }
-        $scope.$apply();
     });
 
     vm.socket.on('room-connections', (data) => {
-        vm.roomInstance = data;
+        vm.roomInstance._id = data._id;
+        vm.roomInstance.name = data.name;
+        vm.roomInstance.users = data.users;
+        vm.roomInstance.messages = [];
+        data.messages.forEach(msg => {
+            if ($scope.user.fullName == msg.author) {
+                msg.styleClass = 'user'
+            }
+            else {
+                msg.styleClass = 'friend'
+            }
+            if(!msg.isFile) {
+                vm.roomInstance.messages.push(msg);
+            }
+            else{
+                if(msg.extension == "jpg" || msg.extension == "png"){
+                    msg.isImg = true;
+                    vm.roomInstance.messages.push(msg);
+                }
+                else{
+                    msg.isImg = false;
+                    vm.roomInstance.messages.push(msg);
+                }
+            }
+            $scope.$apply();
+        });
     });
 
     vm.socket.on('room-messages', (msg) => {
-        vm.roomInstance.messages.push(msg);
+
+        if ($scope.user.fullName == msg.author) {
+            msg.styleClass = 'user'
+        }
+        else {
+            msg.styleClass = 'friend'
+        }
+        if(!msg.isFile) {
+            vm.roomInstance.messages.push(msg);
+        }
+        else{
+            if(msg.extension == "jpg" || msg.extension == "png"){
+                msg.isImg = true;
+                vm.roomInstance.messages.push(msg);
+            }
+            else{
+                msg.isImg = false;
+                vm.roomInstance.messages.push(msg);
+            }
+        }
         $scope.$apply();
     });
 
@@ -181,6 +237,20 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
         });
     }
 
+    function changeRoomInstance(room) {
+        vm.socket.emit('join-room', {room:room, user: $scope.user});
+        vm.roomToggle = true;
+        vm.singleToggle = false;
+    }
+
+    function sendMsgToRoomInstance(room, msg) {
+        vm.socket.emit('room-messages', {
+            room: room._id,
+            msg: msg,
+            author: $scope.user.fullName
+        });
+    }
+
     function createRoom(roomName) {
         dataservice.createNewRoom({
             name: roomName,
@@ -190,42 +260,43 @@ function ChatPanelCtrl($scope, dataservice, $sce) {
         });
     }
 
-    function changeRoomInstance(room) {
-        vm.socket.emit('join-room', room);
-        vm.roomToggle = true;
-        vm.singleToggle = false;
-    }
-
-    function sendMsgToRoomInstance(room, msg) {
-        vm.socket.emit('room-messages', {room: room._id, msg: msg, author: $scope.user.fullName});
-    }
-
     function addUserToRoom(user, roomInstance) {
         vm.socket.emit('join-user-to-room', {user: user, roomInstance: roomInstance});
     }
 
-    function fileUpload(value, name) {
-        console.log(value);
-        let fullPath = name;
-        if (fullPath) {
-            let startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
-            let filename = fullPath.substring(startIndex);
-            if (filename.indexOf('\\') === 0 || filename.indexOf('/') === 0) {
-                filename = filename.substring(1);
-            }
-            fullPath = filename;
-        }
-        vm.socket.emit('chat-connection-file', {
-            room: vm.chatInstance._id,
-            fileData: value,
-            fileName: fullPath,
-            author: $scope.user.fullName,
-            friend: vm.chatInstance.friendId
-        });
+    function fileUpload(file) {
+        let fileExtension = file.name.split('.').pop();
+        let stream = ss.createStream();
+        // upload a file to the server.
+        ss(vm.socket).emit('fileUpload', stream,
+            {
+                size: file.size,
+                extension: fileExtension,
+                roomId:vm.chatInstance._id,
+                author:$scope.user.fullName,
+            });
+        ss.createBlobReadStream(file).pipe(stream);
     }
 
-    function downloadFile(text, id) {
-        console.log(1);
+    function chatFileUpload(file) {
+        let fileExtension = file.name.split('.').pop();
+        let stream = ss.createStream();
+        // upload a file to the server.
+        ss(vm.socket).emit('chatFileUpload', stream,
+            {
+                size: file.size,
+                extension: fileExtension,
+                roomId:vm.roomInstance._id,
+                author:$scope.user.fullName,
+            });
+        ss.createBlobReadStream(file).pipe(stream);
+    }
+
+    function fileDownload(filePath, fileExtension) {
+        let filepath = filePath + '.' + fileExtension;
+        dataservice.downloadFile(filepath).then((response) => {
+            console.log(response);
+        });
     }
 
 

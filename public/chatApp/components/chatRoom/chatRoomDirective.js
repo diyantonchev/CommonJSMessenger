@@ -7,7 +7,9 @@ angular.module('chat').directive('chatRoom', function () {
             allUsers: '<',
             roomInstance: '=',
             msgSendFunction: '=',
-            addUserToRoom: '='
+            addUserToRoom: '=',
+            fileUpload: '=',
+            fileDownload: '=',
         },
         templateUrl: 'chatApp/components/chatRoom/chatRoom.html',
         controller: 'ChatRoomCtrl',

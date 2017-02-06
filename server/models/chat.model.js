@@ -21,8 +21,7 @@ const chatSchema = new Schema({
             text: String,
             date: Number,
             isFile: Boolean,
-            fileName: String,
-            isImage: Boolean
+            extension: String
         }
     ]
 

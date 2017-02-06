@@ -16,10 +16,11 @@ const roomSchema = new Schema({
     ],
     messages: [
         {
-            _id: false,
             author: String,
             text: String,
-            date: Number
+            date: Number,
+            isFile: Boolean,
+            extension: String
         }
     ]
 });

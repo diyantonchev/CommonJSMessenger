@@ -5,8 +5,69 @@ chat-room{
     width: 500px;
     right: 400px;
     bottom: 0;
+    .room-name{
+      position: relative;
+      .users-tooltip{
+        position: absolute;
+        left: -120px;
+        right: 83px;
+        top: -21px;
+        z-index: 9999;
+        padding: 0 5px;
+        max-width: 200px;
+        background-color: #222;
+        border-radius: 5px;
+        p{
+          margin: 0;
+          padding: 3px 0;
+          font-size: 13px;
+          text-align: center;
+        }
+      }
+    }
     md-content{
       width: 100%;
+      overflow-x: hidden;
+      .room-message {
+        width: 100%;
+        height: auto;
+        padding: 12px 0;
+        margin-right: 6px;
+        display: flex;
+        &.user{
+          flex-direction: row-reverse;
+          .msg{
+            background-color: royalblue;
+            color: white;
+            border-bottom-left-radius: 12px;
+            border-top-left-radius: 12px;
+          }
+        }
+        &.friend{
+          flex-direction: row;
+          .msg{
+            background-color: lightgray;
+            color: #222;
+            border-bottom-right-radius: 12px;
+            border-top-right-radius: 12px;
+          }
+        }
+        .room-message-wrapper{
+          display: flex;
+          width: 60%;
+          flex-direction: column;
+          div{
+            padding: 5px 8px 4px;
+            &.msg{
+              word-wrap: break-word;
+            }
+          }
+        }
+        .msg-img{
+          width: 100%;
+          height: auto;
+        }
+      }
     }
   }
 }

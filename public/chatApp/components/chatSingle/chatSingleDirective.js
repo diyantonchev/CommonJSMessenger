@@ -7,7 +7,7 @@ angular.module('chat').directive('chatSingle', function () {
             chatInstance: '=',
             msgSendFunction: '=',
             fileUpload: '=',
-            downloadFile: '='
+            fileDownload: '=',
         },
         templateUrl: 'chatApp/components/chatSingle/chatSingle.html',
         controller: 'ChatSingleCtrl',

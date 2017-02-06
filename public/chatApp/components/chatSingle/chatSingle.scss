@@ -1,8 +1,8 @@
 chat-single {
   md-whiteframe {
     position: fixed;
-    height: 500px;
-    width: 500px;
+    height: 800px;
+    width: 600px;
     right: 400px;
     bottom: 0;
     md-content {
@@ -48,7 +48,7 @@ chat-single {
         }
         .chat-message-wrapper{
           display: flex;
-          width: 50%;
+          width: 60%;
           flex-direction: column;
           div{
             padding: 5px 8px 4px;
