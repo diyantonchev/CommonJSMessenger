@@ -14,21 +14,30 @@ chat-panel{
     bottom: 0;
     border-left: 1px solid lightgray;
     transition: all 0.3s linear;
-    .user-tab{
-      .user{
-
+    md-list {
+      padding: 0;
+      .fav-button.md-icon-button {
+        height: 50px !important;
+        width: 50px !important;
+        line-height: 36px !important;
+        ng-md-icon {
+          width: 36px !important;
+          height: 36px !important;
+          color: #e6c300;
+        }
       }
     }
     &.toggle-chat{
       max-width: 400px;
     }
   }
+
+  /* The finishing CSS styles for the enter animation */
   .ng-enter {
     transition:0.2s linear all;
     opacity:0;
   }
 
-  /* The finishing CSS styles for the enter animation */
   .ng-enter.ng-enter-active {
     opacity:1;
   }

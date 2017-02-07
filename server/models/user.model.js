@@ -7,6 +7,12 @@ const userSchema = new Schema({
     password: { type: String, required: true },
     isAdmin: Boolean,
     avatar: String,
+    favourites: [
+        {
+            _id: false,
+            _id: Schema.ObjectId
+        }
+    ]
 });
 
 mongoose.model('User', userSchema);

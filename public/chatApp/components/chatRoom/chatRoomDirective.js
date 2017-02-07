@@ -8,6 +8,7 @@ angular.module('chat').directive('chatRoom', function () {
             roomInstance: '=',
             msgSendFunction: '=',
             addUserToRoom: '=',
+            leaveRoom: "=",
             fileUpload: '=',
             fileDownload: '=',
         },

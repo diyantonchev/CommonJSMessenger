@@ -14,7 +14,8 @@ function dataservice($http) {
         addGroupChat: addGroupChat,
         addUserToRoom : addUserToRoom,
         removeUserFromRoom: removeUserFromRoom,
-        deleteRoom: deleteRoom
+        deleteRoom: deleteRoom,
+        switchFavourite: switchFavourite
     };
 
     return service;
@@ -55,6 +56,16 @@ function dataservice($http) {
             url: '/download',
             method: "POST",
             data: { filePath: filePath }
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+    function switchFavourite(data) {
+        return $http({
+            url: '/favourite',
+            method: "POST",
+            data: { data: data }
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);

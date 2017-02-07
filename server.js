@@ -33,7 +33,7 @@ app.post('/login', (req, res) => {
 
     let reqUser = req.body;
     User.findOne(reqUser)
-        .select('_id username fullName').then((user) => {
+        .select('_id username fullName favourites').then((user) => {
         res.json(user);
     });
 
@@ -42,6 +42,7 @@ app.post('/login', (req, res) => {
 let users = [];
 
 io.sockets.on('connection', (socket) => {
+
 
     let loggedUser = '';
 
@@ -175,21 +176,31 @@ io.sockets.on('connection', (socket) => {
     });
 
     socket.on('leave-room', (data) => {
-        socket.leave(data.room._id);
+
         Room.findById(data.room._id).then((room) => {
             let index = room.users.findIndex(user => user.id == data.user._id);
+            let user = room.users[index];
             room.users.splice(index, 1);
-            Room.findByIdAndUpdate(data.room._id, {
-                $set: {
-                    'users': room.users
-                }
-            }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
-                if (err) {
-                    console.log(err);
-                }
-
-                // io.sockets.to(data.room._id).emit('room-messages', roomData);
-            });
+            if(!room.users.length) {
+                Room.remove({"_id": data.room._id}, (err, cb) => {
+                    if(err){
+                        console.log(err);
+                    }
+                });
+            }
+            else {
+                Room.findByIdAndUpdate(data.room._id, {
+                    $set: {
+                        'users': room.users
+                    }
+                }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
+                    if (err) {
+                        console.log(err);
+                    }
+                    socket.leave(data.room._id);
+                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom:newRoom, userLeft: user});
+                });
+            }
         });
     });
 
@@ -203,7 +214,7 @@ io.sockets.on('connection', (socket) => {
                     isFile: false
                 }
             }
-        }, {safe: true, new: true, upsert: true}).then((err) => {
+        }, {safe: true, new: true, upsert: true}).then((err, room) => {
             if (err) {
                 console.log(err);
             }
@@ -213,6 +224,10 @@ io.sockets.on('connection', (socket) => {
                 text: data.msg,
                 date: Date.now(),
                 isFile: false
+            });
+
+            socket.broadcast.emit('room-notifications', {
+                roomId: data.room
             });
         });
     });
@@ -299,26 +314,31 @@ io.sockets.on('connection', (socket) => {
         });
     });
 
-    // app.get('/getRooms', (req, res) => {
-    //     Room
-    //         .find({users: {$elemMatch: {id: req.query.loggedUser}}})
-    //         .then((rooms) => {
-    //
-    //             rooms.forEach((room) => {
-    //                 if (!socket.rooms[room._id]) {
-    //                     socket.join(room._id);
-    //                 }
-    //             });
-    //
-    //             res.json(rooms);
-    //
-    //
-    //         }, (err) => {
-    //             if (err) {
-    //                 console.log(err);
-    //             }
-    //         });
-    // });
+    app.post('/favourite', (req, res) => {
+        let user = req.body.data.user;
+        let favUser = req.body.data.favUser;
+        if(req.body.data.new){
+            User.findByIdAndUpdate(user._id, {
+                $push: {
+                    "favourites": favUser
+                }
+            }, {safe: true, new: true, upsert: true}, (err, user) => {
+                res.json(user.favourites);
+            });
+        }
+        else{
+            User.findByIdAndUpdate(user._id, {
+                $pull: {
+                    "favourites": favUser
+                }
+            }, {safe: true, new: true, upsert: true}, (err, user) => {
+                res.json(user.favourites);
+            });
+        }
+
+
+    });
+
 
     app.post('/download', (req, res) => {
         let file = path.join(__dirname, 'public/files', req.body.filePath);

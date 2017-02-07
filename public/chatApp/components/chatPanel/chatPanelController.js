@@ -23,10 +23,12 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     vm.changeRoomInstance = changeRoomInstance;
     vm.sendMsgToRoomInstance = sendMsgToRoomInstance;
     vm.addUserToRoom = addUserToRoom;
+    vm.leaveRoom = leaveRoom;
     vm.fileUpload = fileUpload;
     vm.chatFileUpload = chatFileUpload;
     vm.fileDownload = fileDownload;
 
+    vm.switchFavourite = switchFavourite;
     //Init Functions
     // getUsersData();
 
@@ -49,6 +51,14 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     vm.socket.on('users', (data) => {
         vm.users = data.map((user) => {
             return JSON.parse(user);
+        });
+        vm.users.forEach(user => {
+            if($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1){
+                user.favourite = "star";
+            }
+            else{
+                user.favourite = "star_border";
+            }
         });
         $scope.$apply();
     });
@@ -139,6 +149,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
         if (!isRoom) {
             vm.rooms.push(data);
         }
+        $scope.$apply();
     });
 
     vm.socket.on('room-connections', (data) => {
@@ -171,31 +182,48 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     });
 
     vm.socket.on('room-messages', (msg) => {
+        if (Object.keys(vm.roomInstance).length > 0 && vm.roomInstance.constructor === Object) {
 
-        if ($scope.user.fullName == msg.author) {
-            msg.styleClass = 'user'
-        }
-        else {
-            msg.styleClass = 'friend'
-        }
-        if (!msg.isFile) {
-            vm.roomInstance.messages.push(msg);
-        }
-        else {
-            if (msg.extension == "jpg" || msg.extension == "png") {
-                msg.isImg = true;
+            if ($scope.user.fullName == msg.author) {
+                msg.styleClass = 'user'
+            }
+            else {
+                msg.styleClass = 'friend'
+            }
+            if (!msg.isFile) {
                 vm.roomInstance.messages.push(msg);
             }
             else {
-                msg.isImg = false;
-                vm.roomInstance.messages.push(msg);
+                if (msg.extension == "jpg" || msg.extension == "png") {
+                    msg.isImg = true;
+                    vm.roomInstance.messages.push(msg);
+                }
+                else {
+                    msg.isImg = false;
+                    vm.roomInstance.messages.push(msg);
+                }
             }
+            $scope.$apply();
         }
-        $scope.$apply();
     });
 
     vm.socket.on('room-notifications', (data) => {
-
+        if (data.roomId) {
+            if (Object.keys(vm.roomInstance).length === 0 && vm.roomInstance.constructor === Object) {
+                let index = vm.rooms.findIndex(room => room._id == data.roomId);
+                vm.rooms[index].newText = true;
+            }
+        }
+        else {
+            vm.roomInstance.users = data.newRoom.users;
+            vm.roomInstance.messages.push({
+                isFile: false,
+                isLeave: true,
+                text: data.userLeft.username + " has left the room",
+                date: Date.now()
+            });
+        }
+        $scope.$apply();
     });
 
 
@@ -241,6 +269,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
         vm.socket.emit('join-room', {room: room, user: $scope.user});
         vm.roomToggle = true;
         vm.singleToggle = false;
+        room.newText = false;
     }
 
     function sendMsgToRoomInstance(room, msg) {
@@ -262,6 +291,17 @@ function ChatPanelCtrl($scope, dataservice, $window) {
 
     function addUserToRoom(user, roomInstance) {
         vm.socket.emit('join-user-to-room', {user: user, roomInstance: roomInstance});
+        vm.roomInstance.users.push({
+            id: user._id,
+            fullName: user.fullName,
+            username: user.username
+        });
+    }
+
+    function leaveRoom(roomInstance) {
+        let index = vm.rooms.findIndex(room => room._id == roomInstance._id);
+        vm.rooms.splice(index, 1);
+        vm.socket.emit('leave-room', {user: $scope.user, room: roomInstance});
     }
 
     function fileUpload(file) {
@@ -305,6 +345,29 @@ function ChatPanelCtrl($scope, dataservice, $window) {
             a.click();
             document.body.removeChild(a);
         });
+    }
+    
+    function switchFavourite(favUser, user) {
+        if(user.favourites.findIndex(u => u._id === favUser._id) == -1){
+            dataservice.switchFavourite({
+                favUser: favUser,
+                user: user,
+                new: true
+            }).then((response) => {
+                $scope.user.favourites = response;
+                favUser.favourite = 'star';
+            });
+        }
+        else{
+            dataservice.switchFavourite({
+                favUser: favUser,
+                user: user,
+                new: false
+            }).then((response) => {
+                $scope.user.favourites = response;
+                favUser.favourite = 'star_border';
+            });
+        }
     }
 
 

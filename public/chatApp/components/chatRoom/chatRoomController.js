@@ -12,6 +12,11 @@ function ChatRoomCtrl($scope) {
         $scope.msgSendFunction(room, msg);
         vm.msgToSend = '';
     }
+    vm.leaveRoom = function () {
+        $scope.leaveRoom($scope.roomInstance);
+        vm.closeRoomInstance();
+    }
+    
     vm.closeRoomInstance = function () {
         $scope.roomInstance = {};
         $scope.toggled = false
