@@ -11,3 +11,4 @@ public/styles/**/*.css
 !public/styles/lib/*.css
 public/styles/**/*.css.map
 .sass-cache
+npm-debug.log
