@@ -13,6 +13,8 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     vm.singleToggle = false;
     vm.rooms = [];
     vm.users = [];
+    vm.offlineUsers = [];
+    vm.favUsers = [];
     vm.chatInstance = {};
     vm.roomInstance = {};
 
@@ -49,9 +51,37 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     });
 
     vm.socket.on('users', (data) => {
-        vm.users = data.map((user) => {
-            return JSON.parse(user);
-        });
+        if(vm.users.length < 1 && vm.users.length < data.length) {
+            vm.users = data;
+        }
+        else if(vm.users.length >= 1 && vm.users.length <= data.length){
+            let newUsers = [];
+            data.forEach(newUser => {
+                if(!vm.users.some(s => s._id == newUser._id)){
+                    newUsers.push(newUser);
+                }
+            });
+            newUsers.forEach(user => {
+                vm.users.push(user);
+                let index = vm.offlineUsers.findIndex(i => i._id == user._id);
+                if(index != -1){
+                    vm.offlineUsers.splice(index , 1);
+                }
+            });
+        }
+        else if(vm.users.length >= 1 && vm.users.length > data.length){
+            vm.users.forEach(user => {
+                if(data.findIndex(i => i._id == user._id) == -1){
+                    let index = vm.users.findIndex(i => i._id == user._id);
+                    vm.users.splice(index, 1);
+                }
+                let index = vm.offlineUsers.findIndex(i => i._id == user._id);
+                if(index == -1 && $scope.user.history.findIndex(i => i._id == user._id) != -1){
+                    let offUser = $scope.user.history.find(u => u._id === user._id);
+                    vm.offlineUsers.push(offUser);
+                }
+            });
+        }
         vm.users.forEach(user => {
             if($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1){
                 user.favourite = "star";
@@ -60,6 +90,28 @@ function ChatPanelCtrl($scope, dataservice, $window) {
                 user.favourite = "star_border";
             }
         });
+        if(vm.offlineUsers.length < 1) {
+            vm.offlineUsers = [];
+            $scope.user.history.forEach(user => {
+                if(vm.users.findIndex(u => u._id == user._id) == -1) {
+                    vm.offlineUsers.push(user);
+                }
+            });
+        }
+        /*else if(vm.offlineUsers.length >= 1){
+
+        }*/
+        vm.offlineUsers.forEach(user => {
+            if ($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1) {
+                user.favourite = "star";
+            }
+            else {
+                user.favourite = "star_border";
+            }
+        });
+        console.log(vm.offlineUsers);
+
+
         $scope.$apply();
     });
 
@@ -114,7 +166,6 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     });
 
     vm.socket.on('chat-connection', (msg) => {
-
 
         if ($scope.user.fullName == msg.author) {
             msg.styleClass = 'user'
@@ -247,13 +298,18 @@ function ChatPanelCtrl($scope, dataservice, $window) {
 
 
     function changeChatInstance(friend) {
+
         vm.socket.emit('join-single-room', {user: $scope.user, friend: friend});
+
         let user = vm.users.filter((user) => {
             return user._id == friend._id;
         })[0];
-        user.newText = false;
+        if(user != undefined){
+            user.newText = false;
+        }
         vm.roomToggle = false;
         vm.singleToggle = true;
+
     }
 
     function sendMsgToChatInstance(room, msg) {

@@ -33,7 +33,7 @@ app.post('/login', (req, res) => {
 
     let reqUser = req.body;
     User.findOne(reqUser)
-        .select('_id username fullName favourites').then((user) => {
+        .select('_id username fullName favourites history').then((user) => {
         res.json(user);
     });
 
@@ -42,7 +42,6 @@ app.post('/login', (req, res) => {
 let users = [];
 
 io.sockets.on('connection', (socket) => {
-
 
     let loggedUser = '';
 
@@ -58,19 +57,20 @@ io.sockets.on('connection', (socket) => {
 
     socket.on('users', (userId) => {
 
-
         User.findById(userId)
-            .select('_id username fullName')
+            .select('_id username fullName favourites')
             .then((user) => {
 
-                if (users.indexOf(JSON.stringify(user)) == -1) {
-
-                    loggedUser = JSON.stringify(user);
-                    users.push(JSON.stringify(user));
-
+                let onlineUser = JSON.parse(JSON.stringify(user));
+                onlineUser.online = true;
+                if (users.findIndex(u => u._id == onlineUser._id) == -1) {
+                    loggedUser = onlineUser;
+                    users.push(onlineUser);
                 }
+
                 io.sockets.emit('users', users);
             });
+
     });
 
     socket.on('join-single-room', (data) => {
@@ -97,6 +97,29 @@ io.sockets.on('connection', (socket) => {
                         }
                         socket.join(data._id);
                         socket.emit('chats', data);
+                    }).then(() => {
+                        User.findByIdAndUpdate(data.user._id, {
+                            $push: {
+                                'history':{
+                                    _id: data.friend._id,
+                                    username: data.friend.username,
+                                    fullName: data.friend.fullName
+                                }
+                            }
+                        },{safe: true, new: true, upsert: true},(err, data) => {
+
+                        });
+                        User.findByIdAndUpdate(data.friend._id, {
+                            $push: {
+                                'history':{
+                                    _id: data.user._id,
+                                    username: data.user.username,
+                                    fullName: data.user.fullName
+                                }
+                            }
+                        },{safe: true, new: true, upsert: true},(err, data) => {
+
+                        });
                     });
                 }
                 else {
@@ -181,9 +204,9 @@ io.sockets.on('connection', (socket) => {
             let index = room.users.findIndex(user => user.id == data.user._id);
             let user = room.users[index];
             room.users.splice(index, 1);
-            if(!room.users.length) {
+            if (!room.users.length) {
                 Room.remove({"_id": data.room._id}, (err, cb) => {
-                    if(err){
+                    if (err) {
                         console.log(err);
                     }
                 });
@@ -198,7 +221,7 @@ io.sockets.on('connection', (socket) => {
                         console.log(err);
                     }
                     socket.leave(data.room._id);
-                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom:newRoom, userLeft: user});
+                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom: newRoom, userLeft: user});
                 });
             }
         });
@@ -317,7 +340,7 @@ io.sockets.on('connection', (socket) => {
     app.post('/favourite', (req, res) => {
         let user = req.body.data.user;
         let favUser = req.body.data.favUser;
-        if(req.body.data.new){
+        if (req.body.data.new) {
             User.findByIdAndUpdate(user._id, {
                 $push: {
                     "favourites": favUser
@@ -326,7 +349,7 @@ io.sockets.on('connection', (socket) => {
                 res.json(user.favourites);
             });
         }
-        else{
+        else {
             User.findByIdAndUpdate(user._id, {
                 $pull: {
                     "favourites": favUser

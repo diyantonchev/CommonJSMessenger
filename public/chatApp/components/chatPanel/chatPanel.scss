@@ -16,6 +16,9 @@ chat-panel{
     transition: all 0.3s linear;
     md-list {
       padding: 0;
+      .online-icon{
+        color: green;
+      }
       .fav-button.md-icon-button {
         height: 50px !important;
         width: 50px !important;

@@ -12,6 +12,14 @@ const userSchema = new Schema({
             _id: false,
             _id: Schema.ObjectId
         }
+    ],
+    history: [
+        {
+            _id: false,
+            _id: Schema.ObjectId,
+            username: { type: String, required: true},
+            fullName: { type: String, required: true}
+        }
     ]
 });
 
