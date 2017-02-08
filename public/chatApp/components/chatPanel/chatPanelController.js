@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$window'];
+ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$window', 'notifier'];
 
-function ChatPanelCtrl($scope, dataservice, $window) {
+function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
 
     let vm = this;
@@ -31,6 +31,13 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     vm.fileDownload = fileDownload;
 
     vm.switchFavourite = switchFavourite;
+
+    document.addEventListener('New Message', function (ev) {
+        let friend = vm.users.find(u => u.fullName == ev.detail.author);
+        vm.chatToggle = true;
+        vm.changeChatInstance(friend);
+    });
+
     //Init Functions
     // getUsersData();
 
@@ -51,49 +58,49 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     });
 
     vm.socket.on('users', (data) => {
-        if(vm.users.length < 1 && vm.users.length < data.length) {
+        if (vm.users.length < 1 && vm.users.length < data.length) {
             vm.users = data;
         }
-        else if(vm.users.length >= 1 && vm.users.length <= data.length){
+        else if (vm.users.length >= 1 && vm.users.length <= data.length) {
             let newUsers = [];
             data.forEach(newUser => {
-                if(!vm.users.some(s => s._id == newUser._id)){
+                if (!vm.users.some(s => s._id == newUser._id)) {
                     newUsers.push(newUser);
                 }
             });
             newUsers.forEach(user => {
                 vm.users.push(user);
                 let index = vm.offlineUsers.findIndex(i => i._id == user._id);
-                if(index != -1){
-                    vm.offlineUsers.splice(index , 1);
+                if (index != -1) {
+                    vm.offlineUsers.splice(index, 1);
                 }
             });
         }
-        else if(vm.users.length >= 1 && vm.users.length > data.length){
+        else if (vm.users.length >= 1 && vm.users.length > data.length) {
             vm.users.forEach(user => {
-                if(data.findIndex(i => i._id == user._id) == -1){
+                if (data.findIndex(i => i._id == user._id) == -1) {
                     let index = vm.users.findIndex(i => i._id == user._id);
                     vm.users.splice(index, 1);
                 }
                 let index = vm.offlineUsers.findIndex(i => i._id == user._id);
-                if(index == -1 && $scope.user.history.findIndex(i => i._id == user._id) != -1){
+                if (index == -1 && $scope.user.history.findIndex(i => i._id == user._id) != -1) {
                     let offUser = $scope.user.history.find(u => u._id === user._id);
                     vm.offlineUsers.push(offUser);
                 }
             });
         }
         vm.users.forEach(user => {
-            if($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1){
+            if ($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1) {
                 user.favourite = "star";
             }
-            else{
+            else {
                 user.favourite = "star_border";
             }
         });
-        if(vm.offlineUsers.length < 1) {
+        if (vm.offlineUsers.length < 1) {
             vm.offlineUsers = [];
             $scope.user.history.forEach(user => {
-                if(vm.users.findIndex(u => u._id == user._id) == -1) {
+                if (vm.users.findIndex(u => u._id == user._id) == -1) {
                     vm.offlineUsers.push(user);
                 }
             });
@@ -161,6 +168,10 @@ function ChatPanelCtrl($scope, dataservice, $window) {
                 return user.fullName == data.author;
             })[0];
             user.newText = true;
+            if (Object.keys(vm.chatInstance).length === 0 && vm.chatInstance.constructor === Object) {
+                notifier.notifyMe('New message', `${data.author} messaged you`, data);
+            }
+
             $scope.$apply();
         }
     });
@@ -299,12 +310,12 @@ function ChatPanelCtrl($scope, dataservice, $window) {
 
     function changeChatInstance(friend) {
 
-        vm.socket.emit('join-single-room', {user: $scope.user, friend: friend});
+        vm.socket.emit('join-single-room', { user: $scope.user, friend: friend });
 
         let user = vm.users.filter((user) => {
             return user._id == friend._id;
         })[0];
-        if(user != undefined){
+        if (user != undefined) {
             user.newText = false;
         }
         vm.roomToggle = false;
@@ -322,7 +333,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     }
 
     function changeRoomInstance(room) {
-        vm.socket.emit('join-room', {room: room, user: $scope.user});
+        vm.socket.emit('join-room', { room: room, user: $scope.user });
         vm.roomToggle = true;
         vm.singleToggle = false;
         room.newText = false;
@@ -339,14 +350,14 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     function createRoom(roomName) {
         dataservice.createNewRoom({
             name: roomName,
-            user: {username: $scope.user.username, fullName: $scope.user.fullName, id: $scope.user._id}
+            user: { username: $scope.user.username, fullName: $scope.user.fullName, id: $scope.user._id }
         }).then(function (room) {
             vm.rooms.push(room);
         });
     }
 
     function addUserToRoom(user, roomInstance) {
-        vm.socket.emit('join-user-to-room', {user: user, roomInstance: roomInstance});
+        vm.socket.emit('join-user-to-room', { user: user, roomInstance: roomInstance });
         vm.roomInstance.users.push({
             id: user._id,
             fullName: user.fullName,
@@ -357,7 +368,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
     function leaveRoom(roomInstance) {
         let index = vm.rooms.findIndex(room => room._id == roomInstance._id);
         vm.rooms.splice(index, 1);
-        vm.socket.emit('leave-room', {user: $scope.user, room: roomInstance});
+        vm.socket.emit('leave-room', { user: $scope.user, room: roomInstance });
     }
 
     function fileUpload(file) {
@@ -402,9 +413,9 @@ function ChatPanelCtrl($scope, dataservice, $window) {
             document.body.removeChild(a);
         });
     }
-    
+
     function switchFavourite(favUser, user) {
-        if(user.favourites.findIndex(u => u._id === favUser._id) == -1){
+        if (user.favourites.findIndex(u => u._id === favUser._id) == -1) {
             dataservice.switchFavourite({
                 favUser: favUser,
                 user: user,
@@ -414,7 +425,7 @@ function ChatPanelCtrl($scope, dataservice, $window) {
                 favUser.favourite = 'star';
             });
         }
-        else{
+        else {
             dataservice.switchFavourite({
                 favUser: favUser,
                 user: user,
