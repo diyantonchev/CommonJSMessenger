@@ -71,13 +71,13 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
                     newUsers.push(newUser);
                 }
             });
-            // newUsers.forEach(user => {
-            //     vm.users.push(user);
-            //     let index = vm.offlineUsers.findIndex(i => i._id == user._id);
-            //     if (index != -1) {
-            //         vm.offlineUsers.splice(index, 1);
-            //     }
-            // });
+            newUsers.forEach(user => {
+                vm.users.push(user);
+                let index = vm.offlineUsers.findIndex(i => i._id == user._id);
+                if (index != -1) {
+                    vm.offlineUsers.splice(index, 1);
+                }
+            });
         }
         else if (vm.users.length >= 1 && vm.users.length > data.length) {
             console.log(data, 'third if')
