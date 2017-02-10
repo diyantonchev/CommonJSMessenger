@@ -13,13 +13,30 @@
             <md-tab label="Users" class="user-tab">
                 <md-toolbar layout="column" layout-align="center center">
                     <div flex class="md-toolbar-tools" layout="row">
-                        <input type="text" ng-model="vm.userSearch">
+                        <!--// TODO autocomplete-->
+                          <md-autocomplete
+                            md-no-cache="true"
+                            md-selected-item="vm.selectedUser"
+                             md-selected-item-change="vm.selectedUserChange()"
+                            md-search-text="vm.searchText"
+                            md-items="user in vm.querySearch(vm.searchText)"
+                            md-item-text="user.fullName"
+                            md-min-length="0"
+                            placeholder="Users to chat with">
+                            <md-item-template>
+                                <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{user.fullName}}</span>
+                            </md-item-template>
+                            <md-not-found>
+                                 No user "{{vm.searchText}}" were found.
+                            </md-not-found>
+                        </md-autocomplete>
+                        <!--<input type="text" >-->
                         <span flex></span>
                         <ng-md-icon icon="search"></ng-md-icon>
                     </div>
                 </md-toolbar>
                 <md-list flex>
-                    <md-list-item class="md-3-line" ng-repeat="userr in vm.users | filter: vm.userSearch"
+                    <md-list-item class="md-3-line" ng-repeat="userr in vm.users"
                                                  ng-if="userr._id != user._id" ng-click="vm.changeChatInstance(userr)">
                     <div class="md-list-item-text user" layout="row">
                         <h3>{{userr.fullName}}</h3>
@@ -32,7 +49,7 @@
                         </md-button>
                     </div>
                 </md-list-item>
-                    <md-list-item class="md-3-line" ng-repeat="userr in vm.offlineUsers | filter: vm.userSearch" ng-click="vm.changeChatInstance(userr)">
+                    <md-list-item class="md-3-line" ng-repeat="userr in vm.offlineUsers" ng-click="vm.changeChatInstance(userr)">
                         <div class="md-list-item-text user" layout="row">
                             <h3>{{userr.fullName}}</h3>
                             <span flex></span>

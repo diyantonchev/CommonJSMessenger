@@ -7,7 +7,7 @@ function dataservice($http) {
     let service = {
         login: login,
         createNewRoom: createNewRoom,
-        getUsersData: getUsersData,
+        getAllUsers: getAllUsers,
         downloadFile: downloadFile,
         getRoomsData: getRoomsData,
         createSingleChat: createSingleChat,
@@ -31,7 +31,7 @@ function dataservice($http) {
         }).catch(err => console.err);
     }
 
-    function getUsersData(userId) {
+    function getAllUsers(userId) {
         return $http({
             url: '/users',
             method: "GET",

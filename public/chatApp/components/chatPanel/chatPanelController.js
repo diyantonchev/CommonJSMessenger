@@ -4,7 +4,6 @@ ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$window', 'notifier'];
 
 function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
-
     let vm = this;
 
     //Init Variables
@@ -32,6 +31,9 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
     vm.switchFavourite = switchFavourite;
 
+    vm.querySearch = querySearch;
+    vm.selectedUserChange = selectedUserChange;
+
     document.addEventListener('New Message', function (ev) {
         let friend = vm.users.find(u => u.fullName == ev.detail.author);
         vm.chatToggle = true;
@@ -39,7 +41,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     });
 
     //Init Functions
-    // getUsersData();
+    getAllUsers();
 
     //Sockets
 
@@ -59,24 +61,26 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
     vm.socket.on('users', (data) => {
         if (vm.users.length < 1 && vm.users.length < data.length) {
+            console.log(data, 'first if')
             vm.users = data;
-        }
-        else if (vm.users.length >= 1 && vm.users.length <= data.length) {
+        } else if (vm.users.length >= 1 && vm.users.length <= data.length) {
+            console.log(data, 'second if')
             let newUsers = [];
             data.forEach(newUser => {
                 if (!vm.users.some(s => s._id == newUser._id)) {
                     newUsers.push(newUser);
                 }
             });
-            newUsers.forEach(user => {
-                vm.users.push(user);
-                let index = vm.offlineUsers.findIndex(i => i._id == user._id);
-                if (index != -1) {
-                    vm.offlineUsers.splice(index, 1);
-                }
-            });
+            // newUsers.forEach(user => {
+            //     vm.users.push(user);
+            //     let index = vm.offlineUsers.findIndex(i => i._id == user._id);
+            //     if (index != -1) {
+            //         vm.offlineUsers.splice(index, 1);
+            //     }
+            // });
         }
         else if (vm.users.length >= 1 && vm.users.length > data.length) {
+            console.log(data, 'third if')
             vm.users.forEach(user => {
                 if (data.findIndex(i => i._id == user._id) == -1) {
                     let index = vm.users.findIndex(i => i._id == user._id);
@@ -116,8 +120,6 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
                 user.favourite = "star_border";
             }
         });
-        console.log(vm.offlineUsers);
-
 
         $scope.$apply();
     });
@@ -291,15 +293,14 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
     //Function Declarations
 
-    function getUsersData() {
-        return dataservice.getUsersData($scope.user._id).then((users) => {
-            vm.users = users;
-
+    function getAllUsers() {
+        return dataservice.getAllUsers($scope.user._id).then((users) => {
+            vm.users = JSON.parse(JSON.stringify(users))
+            vm.allUsers = users;
         }, (err) => {
             console.log(err);
         });
     }
-
 
     function panelsToggle() {
         vm.chatToggle = !vm.chatToggle;
@@ -307,14 +308,13 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         vm.singleToggle = false;
     }
 
-
     function changeChatInstance(friend) {
-
         vm.socket.emit('join-single-room', { user: $scope.user, friend: friend });
 
         let user = vm.users.filter((user) => {
             return user._id == friend._id;
         })[0];
+        
         if (user != undefined) {
             user.newText = false;
         }
@@ -437,5 +437,16 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         }
     }
 
+    function querySearch(searchText) {
+        return vm.allUsers.filter(user => {
+            return user.fullName.includes(searchText);
+        });
+    }
 
+    function selectedUserChange() {
+        console.log(vm.selectedUser)
+        if (vm.selectedUser) {
+            changeChatInstance(vm.selectedUser);
+        }
+    }
 };

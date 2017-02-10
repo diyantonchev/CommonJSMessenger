@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const ss = require('socket.io-stream');
+const socketStream = require('socket.io-stream');
 const path = require('path');
 let fs = require('fs');
 const mongoose = require('mongoose');
@@ -21,7 +21,7 @@ let User = mongoose.model('User');
 let Chat = mongoose.model('Chat');
 let Room = mongoose.model('Room');
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -30,12 +30,11 @@ mongoose.connect(connection);
 console.log('MongoDB up and running!');
 
 app.post('/login', (req, res) => {
-
     let reqUser = req.body;
     User.findOne(reqUser)
         .select('_id username fullName favourites history').then((user) => {
-        res.json(user);
-    });
+            res.json(user);
+        });
 
 });
 
@@ -100,24 +99,24 @@ io.sockets.on('connection', (socket) => {
                     }).then(() => {
                         User.findByIdAndUpdate(data.user._id, {
                             $push: {
-                                'history':{
+                                'history': {
                                     _id: data.friend._id,
                                     username: data.friend.username,
                                     fullName: data.friend.fullName
                                 }
                             }
-                        },{safe: true, new: true, upsert: true},(err, data) => {
+                        }, { safe: true, new: true, upsert: true }, (err, data) => {
 
                         });
                         User.findByIdAndUpdate(data.friend._id, {
                             $push: {
-                                'history':{
+                                'history': {
                                     _id: data.user._id,
                                     username: data.user.username,
                                     fullName: data.user.fullName
                                 }
                             }
-                        },{safe: true, new: true, upsert: true},(err, data) => {
+                        }, { safe: true, new: true, upsert: true }, (err, data) => {
 
                         });
                     });
@@ -140,7 +139,7 @@ io.sockets.on('connection', (socket) => {
                     isFile: false
                 }
             }
-        }, {safe: true, new: true, upsert: true}).then((room) => {
+        }, { safe: true, new: true, upsert: true }).then((room) => {
 
             io.sockets.to(data.room).emit('chat-connection', {
                 author: data.author,
@@ -148,21 +147,21 @@ io.sockets.on('connection', (socket) => {
                 date: Date.now(),
                 isFile: false
             });
-            io.sockets.to(data.friend).emit('notifications', {newText: true, author: data.author});
+            io.sockets.to(data.friend).emit('notifications', { newText: true, author: data.author });
         });
 
     });
 
 
-    socket.on('leave-single-room', (data) => {
+    // socket.on('leave-single-room', (data) => {
 
-    });
+    // });
 
 
     socket.on('rooms', (userId) => {
         socket.join(userId);
         Room
-            .find({users: {$elemMatch: {id: userId}}})
+            .find({ users: { $elemMatch: { id: userId } } })
             .then((rooms) => {
 
                 rooms.forEach((room) => {
@@ -186,7 +185,7 @@ io.sockets.on('connection', (socket) => {
                     id: data.user._id
                 }
             }
-        }, {safe: true, new: true, upsert: true}).then((room) => {
+        }, { safe: true, new: true, upsert: true }).then((room) => {
             io.sockets.to(data.user._id).emit(data.user._id, room);
         });
     });
@@ -205,7 +204,7 @@ io.sockets.on('connection', (socket) => {
             let user = room.users[index];
             room.users.splice(index, 1);
             if (!room.users.length) {
-                Room.remove({"_id": data.room._id}, (err, cb) => {
+                Room.remove({ "_id": data.room._id }, (err, cb) => {
                     if (err) {
                         console.log(err);
                     }
@@ -216,12 +215,12 @@ io.sockets.on('connection', (socket) => {
                     $set: {
                         'users': room.users
                     }
-                }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
+                }, { safe: true, new: true, upsert: true }, (err, newRoom) => {
                     if (err) {
                         console.log(err);
                     }
                     socket.leave(data.room._id);
-                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom: newRoom, userLeft: user});
+                    io.sockets.to(data.room._id).emit('room-notifications', { newRoom: newRoom, userLeft: user });
                 });
             }
         });
@@ -237,7 +236,7 @@ io.sockets.on('connection', (socket) => {
                     isFile: false
                 }
             }
-        }, {safe: true, new: true, upsert: true}).then((err, room) => {
+        }, { safe: true, new: true, upsert: true }).then((err, room) => {
             if (err) {
                 console.log(err);
             }
@@ -256,7 +255,7 @@ io.sockets.on('connection', (socket) => {
     });
     //Socket file stream
 
-    ss(socket).on('fileUpload', function (stream, data) {
+    socketStream(socket).on('fileUpload', function (stream, data) {
         Chat.findByIdAndUpdate(data.roomId, {
             $push: {
                 "messages": {
@@ -266,7 +265,7 @@ io.sockets.on('connection', (socket) => {
                     extension: data.extension
                 }
             }
-        }, {safe: true, new: true, upsert: true}, (err, message) => {
+        }, { safe: true, new: true, upsert: true }, (err, message) => {
             if (err) {
                 console.log(err);
             }
@@ -281,7 +280,7 @@ io.sockets.on('connection', (socket) => {
         });
     });
 
-    ss(socket).on('chatFileUpload', function (stream, data) {
+    socketStream(socket).on('chatFileUpload', function (stream, data) {
         Room.findByIdAndUpdate(data.roomId, {
             $push: {
                 "messages": {
@@ -291,7 +290,7 @@ io.sockets.on('connection', (socket) => {
                     extension: data.extension
                 }
             }
-        }, {safe: true, new: true, upsert: true}, (err, message) => {
+        }, { safe: true, new: true, upsert: true }, (err, message) => {
             if (err) {
                 console.log(err);
             }
@@ -326,7 +325,7 @@ io.sockets.on('connection', (socket) => {
 
         new Room({
             name: roomName,
-            users: [{username: userName, fullName: fullName, id: userId}],
+            users: [{ username: userName, fullName: fullName, id: userId }],
             messages: []
         }).save((err, data) => {
             if (err) {
@@ -345,7 +344,7 @@ io.sockets.on('connection', (socket) => {
                 $push: {
                     "favourites": favUser
                 }
-            }, {safe: true, new: true, upsert: true}, (err, user) => {
+            }, { safe: true, new: true, upsert: true }, (err, user) => {
                 res.json(user.favourites);
             });
         }
@@ -354,14 +353,13 @@ io.sockets.on('connection', (socket) => {
                 $pull: {
                     "favourites": favUser
                 }
-            }, {safe: true, new: true, upsert: true}, (err, user) => {
+            }, { safe: true, new: true, upsert: true }, (err, user) => {
                 res.json(user.favourites);
             });
         }
 
 
     });
-
 
     app.post('/download', (req, res) => {
         let file = path.join(__dirname, 'public/files', req.body.filePath);
