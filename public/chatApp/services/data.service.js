@@ -1,11 +1,16 @@
 angular.module('chat')
-    .factory('dataservice', dataservice);
+    .factory('dataService', dataService);
 
-dataservice.$inject = ['$http'];
-function dataservice($http) {
+dataService.$inject = ['$http'];
+function dataService($http) {
 
     let service = {
-        login: login,
+
+        getCurrentUserInfo:getCurrentUserInfo,
+        getUserNamesByString:getUserNamesByString,
+        getChatHistoryBrief:getChatHistoryBrief,
+
+
         createNewRoom: createNewRoom,
         getAllUsers: getAllUsers,
         downloadFile: downloadFile,
@@ -19,6 +24,48 @@ function dataservice($http) {
     };
 
     return service;
+
+
+    function getCurrentUserInfo() {
+        return $http({
+            method: "GET",
+            url: '/currentUserInfo',
+            headers: { 'Content-Type': 'application/json' },
+            params: {accessToken : localStorage.getItem('accessToken')}
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+
+    function getUserNamesByString(searchString){
+        return $http({
+            method: "GET",
+            url: '/fullNamesByString',
+            headers: { 'Content-Type': 'application/json' },
+            params: {searchString : searchString }
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+    function getChatHistoryBrief(){
+        return $http({
+            method: "GET",
+            url: '/chatHistoryBrief',
+            headers: { 'Content-Type': 'application/json' },
+            params: {accessToken : localStorage.getItem('accessToken')}
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+
+
+
+
+
+
     //NEW
     function createNewRoom(roomData) {
         return $http({
@@ -72,16 +119,11 @@ function dataservice($http) {
     }
 
     //OLD
-    function login(userData) {
-        return $http({
-            url: '/login',
-            headers: { 'Content-Type': 'application/json' },
-            method: "POST",
-            data: userData
-        }).then((response) => {
-            return response.data;
-        }).catch(err => console.err);
-    }
+
+
+
+
+
 
     function createSingleChat(data) {
         return $http({

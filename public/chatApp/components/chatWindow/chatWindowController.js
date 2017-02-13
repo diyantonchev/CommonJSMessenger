@@ -1,19 +1,20 @@
-angular.module('chat').controller('ChatSingleCtrl', ChatSingleCtrl);
+angular.module('chat').controller('ChatWindowCtrl', ChatWindowCtrl);
 
-ChatSingleCtrl.$inject = ['$scope'];
+ChatWindowCtrl.$inject = ['$scope'];
 
-function ChatSingleCtrl($scope) {
+function ChatWindowCtrl($scope) {
 
     let vm = this;
 
     vm.msgSendFunction = function (room, msg) {
         $scope.msgSendFunction(room, msg);
         vm.msgToSend = '';
-    }
+    };
+
     vm.closeChatInstance = function () {
-        $scope.toggled = false
+        $scope.toggled = false;
         $scope.chatInstance = {};
-    }
+    };
     //Init Variables
 
 

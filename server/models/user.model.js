@@ -10,7 +10,7 @@ const userSchema = new Schema({
     favourites: [
         {
             _id: false,
-            _id: Schema.ObjectId
+            _id: { type: Number, autoincrement: true}
         }
     ],
     history: [

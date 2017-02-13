@@ -1,28 +1,34 @@
-<md-button class="md-fab md-primary md-hue-2 chat-fab" aria-label="Open Chat Window" ng-click="vm.panelsToggle()">
+<md-button class="md-fab md-primary md-hue-2 chat-fab"
+           aria-label="Open Chat Window"
+           ng-click="vm.panelsToggle()">
     <ng-md-icon icon="people"></ng-md-icon>
 </md-button>
 
 <div class="chat-panel-wrapper" ng-class="{'toggle-chat': vm.chatToggle === true}" layout="column" ng-cloak>
-    <md-toolbar>
-        <div class="md-toolbar-tools">
-            <h2 class="md-flex">{{user.username}}</h2>
-        </div>
-    </md-toolbar>
+
+    <section class="userName">
+        <h1>{{vm.currentUserInfo.fullName}}</h1>
+    </section>
+
+
+
     <md-content flex>
         <md-tabs md-dynamic-height md-center-tabs md-stretch-tabs="always" md-no-pagination>
-            <md-tab label="Users" class="user-tab">
+
+            <md-tab label="History" class="user-tab">
+
                 <md-toolbar layout="column" layout-align="center center">
                     <div flex class="md-toolbar-tools" layout="row">
-                        <!--// TODO autocomplete-->
-                          <md-autocomplete
+                        <md-autocomplete
+                            flex
                             md-no-cache="true"
                             md-selected-item="vm.selectedUser"
-                             md-selected-item-change="vm.selectedUserChange()"
+                            md-selected-item-change="vm.onAutocompleteSelect(user.id)"
                             md-search-text="vm.searchText"
-                            md-items="user in vm.querySearch(vm.searchText)"
+                            md-items="user in vm.getFullNamesByString(vm.searchText)"
                             md-item-text="user.fullName"
-                            md-min-length="0"
-                            placeholder="Users to chat with">
+                            md-min-length="1"
+                            placeholder="{{vm.autocompletePlaceholder}}">
                             <md-item-template>
                                 <span md-highlight-text="ctrl.searchText" md-highlight-flags="^i">{{user.fullName}}</span>
                             </md-item-template>
@@ -30,37 +36,46 @@
                                  No user "{{vm.searchText}}" were found.
                             </md-not-found>
                         </md-autocomplete>
-                        <!--<input type="text" >-->
-                        <span flex></span>
                         <ng-md-icon icon="search"></ng-md-icon>
                     </div>
                 </md-toolbar>
-                <md-list flex>
-                    <md-list-item class="md-3-line" ng-repeat="userr in vm.users"
-                                                 ng-if="userr._id != user._id" ng-click="vm.changeChatInstance(userr)">
-                    <div class="md-list-item-text user" layout="row">
-                        <h3>{{userr.fullName}}</h3>
-                        <span flex></span>
-                        <ng-md-icon icon="chat" ng-show="userr.newText"></ng-md-icon>
-                        <ng-md-icon class="online-icon" icon="fiber_manual_record" ng-show="userr.online"></ng-md-icon>
-                        <md-button aria-label="menu" class="md-secondary md-icon-button fav-button"
-                                   ng-click="vm.switchFavourite(userr, user)">
-                            <ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>
-                        </md-button>
-                    </div>
-                </md-list-item>
-                    <md-list-item class="md-3-line" ng-repeat="userr in vm.offlineUsers" ng-click="vm.changeChatInstance(userr)">
-                        <div class="md-list-item-text user" layout="row">
-                            <h3>{{userr.fullName}}</h3>
-                            <span flex></span>
-                            <md-button aria-label="menu" class="md-secondary md-icon-button fav-button"
-                                       ng-click="vm.switchFavourite(userr, user)">
-                                <ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>
-                            </md-button>
-                        </div>
-                    </md-list-item>
-                </md-list>
+
+
+                <ul>
+                    <li ng-repeat="item in vm.currentUserInfo.chatHistory">{{item.fullName}}</li>
+                </ul>
+
+
+                <!--<md-list flex>-->
+                    <!--<md-list-item class="md-3-line" ng-repeat="userr in vm.users"-->
+                                                 <!--ng-if="userr._id != user._id" ng-click="vm.changeChatInstance(userr)">-->
+                    <!--<div class="md-list-item-text user" layout="row">-->
+                        <!--<h3>{{userr.fullName}}</h3>-->
+                        <!--<span flex></span>-->
+                        <!--<ng-md-icon icon="chat" ng-show="userr.newText"></ng-md-icon>-->
+                        <!--<ng-md-icon class="online-icon" icon="fiber_manual_record" ng-show="userr.online"></ng-md-icon>-->
+                        <!--<md-button aria-label="menu" class="md-secondary md-icon-button fav-button"-->
+                                   <!--ng-click="vm.switchFavourite(userr, user)">-->
+                            <!--<ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>-->
+                        <!--</md-button>-->
+                    <!--</div>-->
+                <!--</md-list-item>-->
+                    <!--<md-list-item class="md-3-line" ng-repeat="userr in vm.offlineUsers" ng-click="vm.changeChatInstance(userr)">-->
+                        <!--<div class="md-list-item-text user" layout="row">-->
+                            <!--<h3>{{userr.fullName}}</h3>-->
+                            <!--<span flex></span>-->
+                            <!--<md-button aria-label="menu" class="md-secondary md-icon-button fav-button"-->
+                                       <!--ng-click="vm.switchFavourite(userr, user)">-->
+                                <!--<ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>-->
+                            <!--</md-button>-->
+                        <!--</div>-->
+                    <!--</md-list-item>-->
+                <!--</md-list>-->
             </md-tab>
+
+
+
+
             <md-tab label="Rooms">
                 <md-toolbar layout="column" layout-align="center center">
                     <div flex class="md-toolbar-tools" layout="row">
@@ -87,6 +102,9 @@
                     </md-list-item>
                 </md-list>
             </md-tab>
+
+
+
             <md-tab label="Favourites">
                 <md-list flex>
                     <md-list-item class="md-3-line" ng-repeat="userr in vm.users"
@@ -120,22 +138,14 @@
         </md-tabs>
     </md-content>
 </div>
-<chat-room
-        toggled="vm.roomToggle"
-        all-users="vm.users"
-        room-instance="vm.roomInstance"
-        msg-send-function="vm.sendMsgToRoomInstance"
-        add-user-to-room="vm.addUserToRoom" ,
-        leave-room="vm.leaveRoom"
-        file-upload="vm.chatFileUpload"
-        file-download="vm.fileDownload"
->
-</chat-room>
-<chat-single
+
+
+
+<chat-window
         toggled="vm.singleToggle"
         chat-instance="vm.chatInstance"
         msg-send-function="vm.sendMsgToChatInstance"
         file-upload="vm.fileUpload"
         file-download="vm.fileDownload"
 >
-</chat-single>
+</chat-window>

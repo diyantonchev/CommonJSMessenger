@@ -8,12 +8,13 @@ let fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 // const routes = require('./server/routes');
+
 require('./server/models/user.model');
 require('./server/models/room.model');
 require('./server/models/chat.model');
 
-mongoose.Promise = Promise;
 
+mongoose.Promise = Promise;
 const port = 3000;
 const connection = 'mongodb://localhost:27017/chat';
 
@@ -21,22 +22,225 @@ let User = mongoose.model('User');
 let Chat = mongoose.model('Chat');
 let Room = mongoose.model('Room');
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
 mongoose.connect(connection);
-
 console.log('MongoDB up and running!');
 
+
+
+// GET REQUESTS
+
+
+app.get('/currentUserInfo',(req, res) => {
+    User
+        .findById(req.query.accessToken)
+        .select('username fullName')
+        .then((userData) => {
+            res.json(userData);
+        });
+});
+
+app.get('/fullNamesByString', (req, res) => {
+    let regexp = new RegExp(req.query.searchString,"gui");
+    User
+        .find( { fullName: { $regex: regexp } })
+        .select('fullName')
+        .then((data) => {
+            let result = JSON.parse(JSON.stringify(data));
+
+            let final = result.map((item) =>{
+                item.id = item._id;
+                return item;
+            });
+            res.json(final);
+        });
+});
+
+app.get('/chatHistoryBrief', (req, res) => {
+    User
+        .findById(req.query.accessToken)
+        .select('history')
+        .then((data) => {
+        console.log('chatHistoryBrief', data);
+            let result = JSON.parse(JSON.stringify(data.history));
+            let final = result.map((item) =>{
+                    item.id = item._id,
+                    item.isFavourite =true,
+                    item.isRoom =false,
+                    item.isOnline =true,
+                    item.lastChatMessageText ='Lorem ipsum dolor sit amet, consectetur...',
+                    item.lastChatDate =new Date(2017, 2, 2)
+                return item;
+            });
+            res.json(final);
+        });
+});
+
+
+
+
+
+
+
+app.get('/getChatHistoryBrief', (req, res) => {
+    /**
+     * Result is supposed to be like that
+     [
+     {
+         id::string,
+         name::string,
+         isFavourite::bool,
+         isRoom::bool,
+         isOnline::bool,
+         lastChatMessageText::string,
+         lastChatDate:: Date
+     }
+     ]
+     */
+});
+
+
+
+
+
+
+app.get('/getMessagesBySearchstring ', (req, res) => {
+    /**
+     * params: -
+         searchstring – searched string
+         userID – mandatory, will search in specific chat session
+
+        return: array of messageIDs that is matching the search pattern
+         [
+             {
+                 messageID : 23423
+             }
+         ]
+     */
+});
+
+
+app.get('/getChatHistory ', (req, res) => {
+    /**
+     * getChatHistory(user/roomID, lastMessageId)
+     * userID/roomID – id related to the specific room
+     * lastMessageId – last loaded messageID (so we can load 20 more for pagination)
+      return: array of messages history notes
+         [
+             {
+                 messageId::string,
+                 authorName::string,
+                 messageDate::Date,
+                 messageBody::string,
+                 messageType::int(plain text = 1, image = 2, file = 3)
+             }
+         ]
+     */
+});
+
+
+
+
+
+
+app.get('/getMatchingUsername', (req, res) => {
+
+    User
+        .find({})
+        .select('_id username fullName avatar')
+        .where('_id').ne(req.searchString )
+        .where('username').findOne({"username" : {$regex : ".*son.*"}})
+        .then((users) => {
+            res.json(users);
+        });
+    /*
+    * [
+         {name:”Ivan Ivanov”, id: 34},
+         {name:”Dragan Ivanov”, id: 14}
+      ]
+     * */
+
+
+
+});
+
+
+app.get('/users', (req, res) => {
+    User
+        .find({})
+        .select('_id username fullName avatar')
+        .where('_id').ne(req.query.loggedUser)
+        .then((users) => {
+            res.json(users);
+        });
+});
+
+
+// POST REQUESTS
 app.post('/login', (req, res) => {
     let reqUser = req.body;
     User.findOne(reqUser)
-        .select('_id username fullName favourites history').then((user) => {
-            res.json(user);
+        .select('_id').then((user) => {
+        res.json({accessToken: user._id});
+    }).catch( (err) => {
+        res.status(418).send('Invalid username and/or password');
+    });
+});
+
+
+
+app.post('/createRoom', (req, res) => {
+    let roomName = req.body.name;
+    let userName = req.body.user.username;
+    let fullName = req.body.user.fullName;
+    let userId = req.body.user.id;
+
+    new Room({
+        name: roomName,
+        users: [{username: userName, fullName: fullName, id: userId}],
+        messages: []
+    }).save((err, data) => {
+        if (err) {
+            console.log(err);
+        }
+
+        res.json(data);
+    });
+});
+
+app.post('/favourite', (req, res) => {
+    let user = req.body.data.user;
+    let favUser = req.body.data.favUser;
+    if (req.body.data.new) {
+        User.findByIdAndUpdate(user._id, {
+            $push: {
+                "favourites": favUser
+            }
+        }, {safe: true, new: true, upsert: true}, (err, user) => {
+            res.json(user.favourites);
         });
+    }
+    else {
+        User.findByIdAndUpdate(user._id, {
+            $pull: {
+                "favourites": favUser
+            }
+        }, {safe: true, new: true, upsert: true}, (err, user) => {
+            res.json(user.favourites);
+        });
+    }
+
 
 });
+
+app.post('/download', (req, res) => {
+    let file = path.join(__dirname, 'public/files', req.body.filePath);
+    res.download(file, req.body.filePath);
+});
+
+
 
 let users = [];
 
@@ -105,7 +309,7 @@ io.sockets.on('connection', (socket) => {
                                     fullName: data.friend.fullName
                                 }
                             }
-                        }, { safe: true, new: true, upsert: true }, (err, data) => {
+                        }, {safe: true, new: true, upsert: true}, (err, data) => {
 
                         });
                         User.findByIdAndUpdate(data.friend._id, {
@@ -116,7 +320,7 @@ io.sockets.on('connection', (socket) => {
                                     fullName: data.user.fullName
                                 }
                             }
-                        }, { safe: true, new: true, upsert: true }, (err, data) => {
+                        }, {safe: true, new: true, upsert: true}, (err, data) => {
 
                         });
                     });
@@ -139,7 +343,7 @@ io.sockets.on('connection', (socket) => {
                     isFile: false
                 }
             }
-        }, { safe: true, new: true, upsert: true }).then((room) => {
+        }, {safe: true, new: true, upsert: true}).then((room) => {
 
             io.sockets.to(data.room).emit('chat-connection', {
                 author: data.author,
@@ -147,7 +351,7 @@ io.sockets.on('connection', (socket) => {
                 date: Date.now(),
                 isFile: false
             });
-            io.sockets.to(data.friend).emit('notifications', { newText: true, author: data.author });
+            io.sockets.to(data.friend).emit('notifications', {newText: true, author: data.author});
         });
 
     });
@@ -161,7 +365,7 @@ io.sockets.on('connection', (socket) => {
     socket.on('rooms', (userId) => {
         socket.join(userId);
         Room
-            .find({ users: { $elemMatch: { id: userId } } })
+            .find({users: {$elemMatch: {id: userId}}})
             .then((rooms) => {
 
                 rooms.forEach((room) => {
@@ -185,7 +389,7 @@ io.sockets.on('connection', (socket) => {
                     id: data.user._id
                 }
             }
-        }, { safe: true, new: true, upsert: true }).then((room) => {
+        }, {safe: true, new: true, upsert: true}).then((room) => {
             io.sockets.to(data.user._id).emit(data.user._id, room);
         });
     });
@@ -204,7 +408,7 @@ io.sockets.on('connection', (socket) => {
             let user = room.users[index];
             room.users.splice(index, 1);
             if (!room.users.length) {
-                Room.remove({ "_id": data.room._id }, (err, cb) => {
+                Room.remove({"_id": data.room._id}, (err, cb) => {
                     if (err) {
                         console.log(err);
                     }
@@ -215,12 +419,12 @@ io.sockets.on('connection', (socket) => {
                     $set: {
                         'users': room.users
                     }
-                }, { safe: true, new: true, upsert: true }, (err, newRoom) => {
+                }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
                     if (err) {
                         console.log(err);
                     }
                     socket.leave(data.room._id);
-                    io.sockets.to(data.room._id).emit('room-notifications', { newRoom: newRoom, userLeft: user });
+                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom: newRoom, userLeft: user});
                 });
             }
         });
@@ -236,7 +440,7 @@ io.sockets.on('connection', (socket) => {
                     isFile: false
                 }
             }
-        }, { safe: true, new: true, upsert: true }).then((err, room) => {
+        }, {safe: true, new: true, upsert: true}).then((err, room) => {
             if (err) {
                 console.log(err);
             }
@@ -265,7 +469,11 @@ io.sockets.on('connection', (socket) => {
                     extension: data.extension
                 }
             }
-        }, { safe: true, new: true, upsert: true }, (err, message) => {
+        }, {
+            safe: true,
+            new: true,
+            upsert: true
+        }, (err, message) => {
             if (err) {
                 console.log(err);
             }
@@ -276,6 +484,7 @@ io.sockets.on('connection', (socket) => {
             stream.on('finish', () => {
                 io.sockets.to(data.roomId).emit('chat-connection', msg);
             });
+
             stream.pipe(fs.createWriteStream(filename));
         });
     });
@@ -290,7 +499,7 @@ io.sockets.on('connection', (socket) => {
                     extension: data.extension
                 }
             }
-        }, { safe: true, new: true, upsert: true }, (err, message) => {
+        }, {safe: true, new: true, upsert: true}, (err, message) => {
             if (err) {
                 console.log(err);
             }
@@ -307,64 +516,7 @@ io.sockets.on('connection', (socket) => {
 
     // Routes
 
-    app.get('/users', (req, res) => {
-        User
-            .find({})
-            .select('_id username fullName avatar')
-            .where('_id').ne(req.query.loggedUser)
-            .then((users) => {
-                res.json(users);
-            });
-    });
 
-    app.post('/createRoom', (req, res) => {
-        let roomName = req.body.name;
-        let userName = req.body.user.username;
-        let fullName = req.body.user.fullName;
-        let userId = req.body.user.id;
-
-        new Room({
-            name: roomName,
-            users: [{ username: userName, fullName: fullName, id: userId }],
-            messages: []
-        }).save((err, data) => {
-            if (err) {
-                console.log(err);
-            }
-
-            res.json(data);
-        });
-    });
-
-    app.post('/favourite', (req, res) => {
-        let user = req.body.data.user;
-        let favUser = req.body.data.favUser;
-        if (req.body.data.new) {
-            User.findByIdAndUpdate(user._id, {
-                $push: {
-                    "favourites": favUser
-                }
-            }, { safe: true, new: true, upsert: true }, (err, user) => {
-                res.json(user.favourites);
-            });
-        }
-        else {
-            User.findByIdAndUpdate(user._id, {
-                $pull: {
-                    "favourites": favUser
-                }
-            }, { safe: true, new: true, upsert: true }, (err, user) => {
-                res.json(user.favourites);
-            });
-        }
-
-
-    });
-
-    app.post('/download', (req, res) => {
-        let file = path.join(__dirname, 'public/files', req.body.filePath);
-        res.download(file, req.body.filePath);
-    });
 
 
 });

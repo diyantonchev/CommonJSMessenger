@@ -5,16 +5,18 @@ angular.module('chat').directive('scrollEvents', function($timeout) {
         },
         restrict: 'A',
         link: function(scope, element) {
+
             scope.$watchCollection('chatInstance', function(newVal) {
                 if (newVal) {
                     $timeout(function() {
-                        element[0].scrollTop =  element[0].scrollHeight;
+                        element[0].scrollTop = element[0].scrollHeight;
                     }, 0);
                 }
             });
         }
     };
 });
+
 angular.module('chat').directive('focusEnter', function () {
     return {
         restrict: 'A',
@@ -33,6 +35,7 @@ angular.module('chat').directive('focusEnter', function () {
         }
     }
 });
+
 angular.module('chat').directive("fileread", [function () {
     return {
         scope: {

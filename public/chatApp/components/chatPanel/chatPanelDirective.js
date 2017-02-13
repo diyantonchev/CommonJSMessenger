@@ -4,6 +4,7 @@ angular.module('chat').directive('chatPanel', function () {
         restrict: 'E',
         scope: {
             user: '<',
+            accessToken: '<',
         },
         templateUrl: 'chatApp/components/chatPanel/chatPanel.html',
         controller: 'ChatPanelCtrl',

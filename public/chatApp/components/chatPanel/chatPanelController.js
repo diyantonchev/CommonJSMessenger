@@ -1,11 +1,67 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', 'dataservice', '$window', 'notifier'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', 'dataService', 'notifier'];
 
-function ChatPanelCtrl($scope, dataservice, $window, notifier) {
+function ChatPanelCtrl($scope, $timeout, $q, dataService, notifier) {
+
+
 
     let vm = this;
 
+    // Variables
+    vm.accessToken = localStorage.getItem('accessToken');
+    vm.currentUserInfo = {
+        fullName: '',
+        chatHistory: [],
+        favourites: []
+    };
+
+    // Strings
+    vm.autocompletePlaceholder = "Search all users";
+
+    //Functions
+    vm.getFullNamesByString = getFullNamesByString;
+    vm.onAutocompleteSelect = onAutocompleteSelect;
+
+    onInit();
+
+
+    function onInit() {
+        // Collecting currentUser info (AJAX)
+        dataService.getCurrentUserInfo().then(function (data) {
+            vm.currentUserInfo.fullName = data.fullName;
+        });
+
+        // Collecting currentUser chat History
+        dataService.getChatHistoryBrief().then(function (data) {
+            vm.currentUserInfo.chatHistory = data;
+        });
+    }
+
+    // Autocomplete
+
+    function getFullNamesByString() {
+        let deferred = $q.defer();
+        if (vm.usersByNameAutocompletePromise) $timeout.cancel(vm.usersByNameAutocompletePromise);
+        vm.usersByNameAutocompletePromise = $timeout(function () {
+            dataService.getFullNamesByString(vm.searchText).then(function (data) {
+                console.log('controller-->',data);
+                deferred.resolve(data);
+            });
+        }, 500);
+        return deferred.promise;
+    }
+
+    function onAutocompleteSelect(userId) {
+        console.log('onAutocompleteSelect',userId)
+    }
+    //Autocomplete END
+
+
+
+
+
+    //
     //Init Variables
     vm.chatToggle = false;
     vm.roomToggle = false;
@@ -28,11 +84,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     vm.fileUpload = fileUpload;
     vm.chatFileUpload = chatFileUpload;
     vm.fileDownload = fileDownload;
-
     vm.switchFavourite = switchFavourite;
-
-    vm.querySearch = querySearch;
-    vm.selectedUserChange = selectedUserChange;
 
     document.addEventListener('New Message', function (ev) {
         let friend = vm.users.find(u => u.fullName == ev.detail.author);
@@ -41,7 +93,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     });
 
     //Init Functions
-    getAllUsers();
+    // getAllUsers();
 
     //Sockets
 
@@ -52,12 +104,13 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         $window.location.href = url;
     });
 
-    vm.socket.on('login', (message) => {
-        vm.socket.emit('users', $scope.user._id);
-        vm.socket.emit('rooms', $scope.user._id);
-    }, (err) => {
-        console.log(err);
-    });
+    //
+    // vm.socket.on('login', (message) => {
+    //     vm.socket.emit('users', $scope.user._id);
+    //     vm.socket.emit('rooms', $scope.user._id);
+    // }, (err) => {
+    //     console.log(err);
+    // });
 
     vm.socket.on('users', (data) => {
         if (vm.users.length < 1 && vm.users.length < data.length) {
@@ -111,7 +164,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         }
         /*else if(vm.offlineUsers.length >= 1){
 
-        }*/
+         }*/
         vm.offlineUsers.forEach(user => {
             if ($scope.user.favourites.findIndex(favUser => favUser._id === user._id) != -1) {
                 user.favourite = "star";
@@ -163,7 +216,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         $scope.$apply();
     });
 
-
+    //
     vm.socket.on('notifications', (data) => {
         if (vm.chatInstance.friend != data.author) {
             let user = vm.users.filter((user) => {
@@ -178,6 +231,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         }
     });
 
+    // room connection but for p2p
     vm.socket.on('chat-connection', (msg) => {
 
         if ($scope.user.fullName == msg.author) {
@@ -203,7 +257,8 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
 
     });
 
-    vm.socket.on($scope.user._id, (data) => {
+    // Seperate channel for
+    vm.socket.on(vm.accessToken, (data) => {
         let isRoom = false;
         vm.rooms.forEach(room => {
             if (room._id == data._id) {
@@ -216,6 +271,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         $scope.$apply();
     });
 
+    // on old message
     vm.socket.on('room-connections', (data) => {
         vm.roomInstance._id = data._id;
         vm.roomInstance.name = data.name;
@@ -245,6 +301,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         });
     });
 
+    // onNew message
     vm.socket.on('room-messages', (msg) => {
         if (Object.keys(vm.roomInstance).length > 0 && vm.roomInstance.constructor === Object) {
 
@@ -271,6 +328,8 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         }
     });
 
+
+    // on user Leave
     vm.socket.on('room-notifications', (data) => {
         if (data.roomId) {
             if (Object.keys(vm.roomInstance).length === 0 && vm.roomInstance.constructor === Object) {
@@ -309,12 +368,12 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     }
 
     function changeChatInstance(friend) {
-        vm.socket.emit('join-single-room', { user: $scope.user, friend: friend });
+        vm.socket.emit('join-single-room', {user: $scope.user, friend: friend});
 
         let user = vm.users.filter((user) => {
             return user._id == friend._id;
         })[0];
-        
+
         if (user != undefined) {
             user.newText = false;
         }
@@ -333,7 +392,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     }
 
     function changeRoomInstance(room) {
-        vm.socket.emit('join-room', { room: room, user: $scope.user });
+        vm.socket.emit('join-room', {room: room, user: $scope.user});
         vm.roomToggle = true;
         vm.singleToggle = false;
         room.newText = false;
@@ -350,14 +409,14 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     function createRoom(roomName) {
         dataservice.createNewRoom({
             name: roomName,
-            user: { username: $scope.user.username, fullName: $scope.user.fullName, id: $scope.user._id }
+            user: {username: $scope.user.username, fullName: $scope.user.fullName, id: $scope.user._id}
         }).then(function (room) {
             vm.rooms.push(room);
         });
     }
 
     function addUserToRoom(user, roomInstance) {
-        vm.socket.emit('join-user-to-room', { user: user, roomInstance: roomInstance });
+        vm.socket.emit('join-user-to-room', {user: user, roomInstance: roomInstance});
         vm.roomInstance.users.push({
             id: user._id,
             fullName: user.fullName,
@@ -368,7 +427,7 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
     function leaveRoom(roomInstance) {
         let index = vm.rooms.findIndex(room => room._id == roomInstance._id);
         vm.rooms.splice(index, 1);
-        vm.socket.emit('leave-room', { user: $scope.user, room: roomInstance });
+        vm.socket.emit('leave-room', {user: $scope.user, room: roomInstance});
     }
 
     function fileUpload(file) {
@@ -437,16 +496,5 @@ function ChatPanelCtrl($scope, dataservice, $window, notifier) {
         }
     }
 
-    function querySearch(searchText) {
-        return vm.allUsers.filter(user => {
-            return user.fullName.includes(searchText);
-        });
-    }
 
-    function selectedUserChange() {
-        console.log(vm.selectedUser)
-        if (vm.selectedUser) {
-            changeChatInstance(vm.selectedUser);
-        }
-    }
 };

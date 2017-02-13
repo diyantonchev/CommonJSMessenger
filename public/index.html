@@ -8,28 +8,37 @@
     <link rel="stylesheet" href="lib/angular-material.min.css">
     <link rel="stylesheet" href="lib/angular-material-icons.css">
     <link rel="stylesheet" href="chatApp/components/chatPanel/chatPanel.css">
-    <link rel="stylesheet" href="chatApp/components/chatSingle/chatSingle.css">
-    <link rel="stylesheet" href="chatApp/components/chatRoom/chatRoom.css">
+    <link rel="stylesheet" href="chatApp/components/chatWindow/chatWindow.css">
+    <link rel="stylesheet" href="chatApp/components/chatWindow/chatWindow.css">
 </head>
 
-<body ng-controller="MainCtrl as vm">
+<body ng-cloak ng-controller="MainCtrl as vm">
 
-<form nonvalidate ng-if="!vm.loggedUser">
+<style>
+   .loginError{
+       border: 1px solid red;
+       background-color: red;
+       color:white;
+   }
+</style>
+
+<form ng-if="!vm.accessToken" nonvalidate>
     Username:<br>
     <input type="text" ng-model="vm.username">
     <br>
     Password: <br>
     <input type="password" ng-model="vm.password">
     <br>
-    <button ng-click="vm.login(vm.username, vm.password)">Log In</button>
+    <button ng-class="{loginError: vm.loginError}" ng-click="vm.login(vm.username, vm.password)">Log In</button>
+</form>
+
+<form ng-if="vm.accessToken">
+    <button ng-click="vm.logout()">Logout</button>
 </form>
 
 <chat-panel
-        ng-cloak
-        ng-if="vm.loggedUser"
-        user="vm.loggedUser"
->
-</chat-panel>
+    ng-if="vm.accessToken"
+></chat-panel>
 
 
 <script src="lib/angular.min.js"></script>
@@ -43,14 +52,18 @@
 <script src="lib/socket.io-stream.js"></script>
 <script src="chatApp/chat.module.js"></script>
 <script src="mainController.js"></script>
+
+<script src="chatApp/services/auth.service.js"></script>
+
 <script src="chatApp/services/data.service.js"></script>
 <script src="chatApp/services/notifier.service.js"></script>
+
 <script src="chatApp/components/chatPanel/chatPanelDirective.js"></script>
 <script src="chatApp/components/chatPanel/chatPanelController.js"></script>
-<script src="chatApp/components/chatSingle/chatSingleDirective.js"></script>
-<script src="chatApp/components/chatSingle/chatSingleController.js"></script>
-<script src="chatApp/components/chatRoom/chatRoomDirective.js"></script>
-<script src="chatApp/components/chatRoom/chatRoomController.js"></script>
+
+<script src="chatApp/components/chatWindow/chatWindowDirective.js"></script>
+<script src="chatApp/components/chatWindow/chatWindowController.js"></script>
+
 <script src="chatApp/directives/directives.js"></script>
 </body>
 

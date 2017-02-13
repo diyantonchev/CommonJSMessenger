@@ -1,14 +1,25 @@
 angular.module('chat').controller('MainCtrl', MainCtrl);
 
-MainCtrl.$inject = ['dataservice'];
+MainCtrl.$inject = ['authService'];
 
-function MainCtrl(dataservice) {
+function MainCtrl(authService) {
 
     let vm = this;
+    vm.loginError = false;
 
     vm.login = function (username, password) {
-        dataservice.login({username:username, password:password}).then((user) => {
-            vm.loggedUser = user;
+        authService.login({username:username, password:password}).then((response) => {
+            vm.loginError = false;
+            vm.accessToken = response.accessToken;
+            localStorage.setItem('accessToken', response.accessToken);
+        }).catch(function (err) {
+            vm.loginError = true;
         });
     };
+
+    vm.logout = function () {
+        localStorage.removeItem('accessToken');
+        location.reload();
+    };
+
 };

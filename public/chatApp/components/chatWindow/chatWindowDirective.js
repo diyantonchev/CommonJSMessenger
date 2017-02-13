@@ -1,4 +1,4 @@
-angular.module('chat').directive('chatSingle', function () {
+angular.module('chat').directive('chatWindow', function () {
 
     return {
         restrict: 'E',
@@ -9,8 +9,8 @@ angular.module('chat').directive('chatSingle', function () {
             fileUpload: '=',
             fileDownload: '=',
         },
-        templateUrl: 'chatApp/components/chatSingle/chatSingle.html',
-        controller: 'ChatSingleCtrl',
+        templateUrl: 'chatApp/components/chatWindow/chatWindow.html',
+        controller: 'ChatWindowCtrl',
         controllerAs: 'vm'
     }
 });
