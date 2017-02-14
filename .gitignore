@@ -11,4 +11,8 @@ tmp
 *.css.map
 .sass-cache
 npm-debug.log
+<<<<<<< HEAD
 db/
+=======
+db
+>>>>>>> 7b3040b1d58354de10c2631b3c999cbaea82e890
