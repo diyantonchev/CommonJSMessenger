@@ -14,10 +14,6 @@ require('./server/models/chatUserRelation.model');
 require('./server/models/chatMessage.model');
 
 
-require('./server/models/room.model');
-require('./server/models/chat.model');
-
-
 mongoose.Promise = Promise;
 const port = 3000;
 const connection = 'mongodb://localhost:27017/chat';
@@ -27,20 +23,41 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-let Room = mongoose.model('Room');
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
 console.log('MongoDB up and running!');
 
+// INSERTING VALUESSSSS
+app.get('/fillChats', (req, res) => {
+
+    // qwerty   =   589dbe874a1dad6d2e933fce
+    // Syla     =   58876339aee27b2a20f1e80e
+    // Drago    =   5887636bd31e7119948abad9
+
+    console.log('Filling chats...');
+
+    new ChatUserRelation(
+        {
+            // "chatHash" : "589dbe874a1dad6d2e933fce",
+            "creatorId": req.query.accessToken || "589dbe874a1dad6d2e933fce",
+            "participants": [
+                "589dbe874a1dad6d2e933fce",
+                "58876339aee27b2a20f1e80e"
+            ]
+        }
+    ).save(function (err, msg) {
+        console.log('ChatUserRelation --> ', msg);
+    });
+
+});
 
 
 // GET REQUESTS
 
 
-app.get('/currentUserInfo',(req, res) => {
+app.get('/currentUserInfo', (req, res) => {
     User
         .findById(req.query.accessToken)
         .select('username fullName')
@@ -50,14 +67,14 @@ app.get('/currentUserInfo',(req, res) => {
 });
 
 app.get('/fullNamesByString', (req, res) => {
-    let regexp = new RegExp(req.query.searchString,"gui");
+    let regexp = new RegExp(req.query.searchString, "gui");
     User
-        .find( { fullName: { $regex: regexp } })
+        .find({fullName: {$regex: regexp}})
         .select('fullName')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
 
-            let final = result.map((item) =>{
+            let final = result.map((item) => {
                 item.id = item._id;
                 return item;
             });
@@ -65,54 +82,30 @@ app.get('/fullNamesByString', (req, res) => {
         });
 });
 
-app.get('/createChatAndMessages', (req, res) => {
-
-    // qwerty   =   589dbe874a1dad6d2e933fce
-    // Syla     =   58876339aee27b2a20f1e80e
-    // Drago    =   5887636bd31e7119948abad9
-
-    new ChatUserRelation(
-        {
-            "chatHash" : "589dbe874a1dad6d2e933fce",
-            "creatorId" : "589dbe874a1dad6d2e933fce",
-            "participants":[
-                "589dbe874a1dad6d2e933fce",
-                "58876339aee27b2a20f1e80e"
-            ]
-        }
-    ).save(function (err,msg) {
-        console.log(msg);
-    });
-
-});
 
 app.get('/chatHistoryBrief', (req, res) => {
-
-
     ChatUserRelation
-        .find({$or : [{ creatorId: req.query.accessToken }, { participants: req.query.accessToken }]})
+        .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
         .select('creatorId participants')
         .then((data) => {
-        console.log(data);
+            let result = JSON.parse(JSON.stringify(data.history));
+            console.log(result);
+            let final = result.map((item) => {
 
-            // let result = JSON.parse(JSON.stringify(data.history));
-            // let final = result.map((item) =>{
-            //         item.id = item._id,
-            //         item.isFavourite =true,
-            //         item.isRoom =false,
-            //         item.isOnline =true,
-            //         item.lastChatMessageText ='Lorem ipsum dolor sit amet, consectetur. dolor sit amet, consectetur um dolor sit amet, consectetur. dolor sit amet, consectetur...',
-            //         item.lastChatDate = new Date(2017, 2, 2)
-            //     return item;
-            // });
-            // res.json(final);
+                console.log(item);
+
+
+                // item.id = item._id,
+                // item.isFavourite =true,
+                // item.isRoom =false,
+                // item.isOnline =true,
+                // item.lastChatMessageText ='Lorem ipsum dolor sit amet, consectetur. dolor sit amet, consectetur um dolor sit amet, consectetur. dolor sit amet, consectetur...',
+                // item.lastChatDate = new Date(2017, 2, 2)
+                return item;
+            });
+            res.json(final);
         });
 });
-
-
-
-
-
 
 
 app.get('/getChatHistoryBrief', (req, res) => {
@@ -133,22 +126,18 @@ app.get('/getChatHistoryBrief', (req, res) => {
 });
 
 
-
-
-
-
 app.get('/getMessagesBySearchstring ', (req, res) => {
     /**
      * params: -
-         searchstring – searched string
-         userID – mandatory, will search in specific chat session
+     searchstring – searched string
+     userID – mandatory, will search in specific chat session
 
-        return: array of messageIDs that is matching the search pattern
-         [
-             {
-                 messageID : 23423
-             }
-         ]
+     return: array of messageIDs that is matching the search pattern
+     [
+     {
+         messageID : 23423
+     }
+     ]
      */
 });
 
@@ -158,22 +147,18 @@ app.get('/getChatHistory ', (req, res) => {
      * getChatHistory(user/roomID, lastMessageId)
      * userID/roomID – id related to the specific room
      * lastMessageId – last loaded messageID (so we can load 20 more for pagination)
-      return: array of messages history notes
-         [
-             {
-                 messageId::string,
-                 authorName::string,
-                 messageDate::Date,
-                 messageBody::string,
-                 messageType::int(plain text = 1, image = 2, file = 3)
-             }
-         ]
+     return: array of messages history notes
+     [
+     {
+         messageId::string,
+         authorName::string,
+         messageDate::Date,
+         messageBody::string,
+         messageType::int(plain text = 1, image = 2, file = 3)
+     }
+     ]
      */
 });
-
-
-
-
 
 
 app.get('/getMatchingUsername', (req, res) => {
@@ -181,18 +166,17 @@ app.get('/getMatchingUsername', (req, res) => {
     User
         .find({})
         .select('_id username fullName avatar')
-        .where('_id').ne(req.searchString )
-        .where('username').findOne({"username" : {$regex : ".*son.*"}})
+        .where('_id').ne(req.searchString)
+        .where('username').findOne({"username": {$regex: ".*son.*"}})
         .then((users) => {
             res.json(users);
         });
     /*
-    * [
-         {name:”Ivan Ivanov”, id: 34},
-         {name:”Dragan Ivanov”, id: 14}
-      ]
+     * [
+     {name:”Ivan Ivanov”, id: 34},
+     {name:”Dragan Ivanov”, id: 14}
+     ]
      * */
-
 
 
 });
@@ -215,11 +199,10 @@ app.post('/login', (req, res) => {
     User.findOne(reqUser)
         .select('_id').then((user) => {
         res.json({accessToken: user._id});
-    }).catch( (err) => {
+    }).catch((err) => {
         res.status(418).send('Invalid username and/or password');
     });
 });
-
 
 
 app.post('/createRoom', (req, res) => {
@@ -270,7 +253,6 @@ app.post('/download', (req, res) => {
     let file = path.join(__dirname, 'public/files', req.body.filePath);
     res.download(file, req.body.filePath);
 });
-
 
 
 let users = [];
@@ -412,81 +394,81 @@ io.sockets.on('connection', (socket) => {
     });
 
     socket.on('join-user-to-room', (data) => {
-        Room.findByIdAndUpdate(data.roomInstance._id, {
-            $addToSet: {
-                "users": {
-                    username: data.user.username,
-                    fullName: data.user.fullName,
-                    id: data.user._id
-                }
-            }
-        }, {safe: true, new: true, upsert: true}).then((room) => {
-            io.sockets.to(data.user._id).emit(data.user._id, room);
-        });
+        // Room.findByIdAndUpdate(data.roomInstance._id, {
+        //     $addToSet: {
+        //         "users": {
+        //             username: data.user.username,
+        //             fullName: data.user.fullName,
+        //             id: data.user._id
+        //         }
+        //     }
+        // }, {safe: true, new: true, upsert: true}).then((room) => {
+        //     io.sockets.to(data.user._id).emit(data.user._id, room);
+        // });
     });
 
     socket.on('join-room', (data) => {
-        socket.join(data.room._id);
-        Room.findById(data.room._id).then((roomData) => {
-            io.sockets.to(data.user._id).emit('room-connections', roomData);
-        });
+        // socket.join(data.room._id);
+        // Room.findById(data.room._id).then((roomData) => {
+        //     io.sockets.to(data.user._id).emit('room-connections', roomData);
+        // });
     });
 
     socket.on('leave-room', (data) => {
 
-        Room.findById(data.room._id).then((room) => {
-            let index = room.users.findIndex(user => user.id == data.user._id);
-            let user = room.users[index];
-            room.users.splice(index, 1);
-            if (!room.users.length) {
-                Room.remove({"_id": data.room._id}, (err, cb) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-            }
-            else {
-                Room.findByIdAndUpdate(data.room._id, {
-                    $set: {
-                        'users': room.users
-                    }
-                }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    socket.leave(data.room._id);
-                    io.sockets.to(data.room._id).emit('room-notifications', {newRoom: newRoom, userLeft: user});
-                });
-            }
-        });
+        // Room.findById(data.room._id).then((room) => {
+        //     let index = room.users.findIndex(user => user.id == data.user._id);
+        //     let user = room.users[index];
+        //     room.users.splice(index, 1);
+        //     if (!room.users.length) {
+        //         Room.remove({"_id": data.room._id}, (err, cb) => {
+        //             if (err) {
+        //                 console.log(err);
+        //             }
+        //         });
+        //     }
+        //     else {
+        //         Room.findByIdAndUpdate(data.room._id, {
+        //             $set: {
+        //                 'users': room.users
+        //             }
+        //         }, {safe: true, new: true, upsert: true}, (err, newRoom) => {
+        //             if (err) {
+        //                 console.log(err);
+        //             }
+        //             socket.leave(data.room._id);
+        //             io.sockets.to(data.room._id).emit('room-notifications', {newRoom: newRoom, userLeft: user});
+        //         });
+        //     }
+        // });
     });
 
     socket.on('room-messages', (data) => {
-        Room.findByIdAndUpdate(data.room, {
-            $push: {
-                "messages": {
-                    author: data.author,
-                    text: data.msg,
-                    date: Date.now(),
-                    isFile: false
-                }
-            }
-        }, {safe: true, new: true, upsert: true}).then((err, room) => {
-            if (err) {
-                console.log(err);
-            }
-
-            io.sockets.to(data.room).emit('room-messages', {
-                author: data.author,
-                text: data.msg,
-                date: Date.now(),
-                isFile: false
-            });
-
-            socket.broadcast.emit('room-notifications', {
-                roomId: data.room
-            });
-        });
+        // Room.findByIdAndUpdate(data.room, {
+        //     $push: {
+        //         "messages": {
+        //             author: data.author,
+        //             text: data.msg,
+        //             date: Date.now(),
+        //             isFile: false
+        //         }
+        //     }
+        // }, {safe: true, new: true, upsert: true}).then((err, room) => {
+        //     if (err) {
+        //         console.log(err);
+        //     }
+        //
+        //     io.sockets.to(data.room).emit('room-messages', {
+        //         author: data.author,
+        //         text: data.msg,
+        //         date: Date.now(),
+        //         isFile: false
+        //     });
+        //
+        //     socket.broadcast.emit('room-notifications', {
+        //         roomId: data.room
+        //     });
+        // });
     });
     //Socket file stream
 
@@ -521,33 +503,31 @@ io.sockets.on('connection', (socket) => {
     });
 
     socketStream(socket).on('chatFileUpload', function (stream, data) {
-        Room.findByIdAndUpdate(data.roomId, {
-            $push: {
-                "messages": {
-                    author: data.author,
-                    date: Date.now(),
-                    isFile: true,
-                    extension: data.extension
-                }
-            }
-        }, {safe: true, new: true, upsert: true}, (err, message) => {
-            if (err) {
-                console.log(err);
-            }
-
-            let msg = message.messages[message.messages.length - 1];
-            let filename = path.join(__dirname, 'public/files', `${msg._id}.${msg.extension}`);
-
-            stream.on('finish', () => {
-                io.sockets.to(data.roomId).emit('room-messages', msg);
-            });
-            stream.pipe(fs.createWriteStream(filename));
-        });
+        // Room.findByIdAndUpdate(data.roomId, {
+        //     $push: {
+        //         "messages": {
+        //             author: data.author,
+        //             date: Date.now(),
+        //             isFile: true,
+        //             extension: data.extension
+        //         }
+        //     }
+        // }, {safe: true, new: true, upsert: true}, (err, message) => {
+        //     if (err) {
+        //         console.log(err);
+        //     }
+        //
+        //     let msg = message.messages[message.messages.length - 1];
+        //     let filename = path.join(__dirname, 'public/files', `${msg._id}.${msg.extension}`);
+        //
+        //     stream.on('finish', () => {
+        //         io.sockets.to(data.roomId).emit('room-messages', msg);
+        //     });
+        //     stream.pipe(fs.createWriteStream(filename));
+        // });
     });
 
     // Routes
-
-
 
 
 });
