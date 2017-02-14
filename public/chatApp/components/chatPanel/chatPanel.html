@@ -41,8 +41,19 @@
                 </md-toolbar>
 
 
-                <ul>
-                    <li ng-repeat="item in vm.currentUserInfo.chatHistory">{{item.fullName}}</li>
+                <ul class="chatList">
+                    <li class="noselect" ng-click="vm.openChatWindow(user.id)" ng-repeat="user in vm.currentUserInfo.chatHistory" layout="row">
+
+                        <div class="avatar" layout="row"  layout-align="center center">
+                            <md-icon>person</md-icon>
+                        </div>
+                        <div class="info" flex>
+                            <div class="fullName">{{user.fullName}}</div>
+                            <div class="lastChatMessageText">{{user.lastChatMessageText}}</div>
+                            <div class="lastChatDate">{{user.lastChatDate | date:'medium'}}</div>
+                        </div>
+
+                    </li>
                 </ul>
 
 

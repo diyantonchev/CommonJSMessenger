@@ -1,36 +1,75 @@
-chat-panel{
-
-section.userName{
-  h1{
-    background-color: #505b72;
-    color: #fff;
-    padding: 5px 15px;
-    text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 700;
-    font-family: Roboto,Helvetica Neue,sans-serif;
+chat-panel {
+  .noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+    &:focus{
+      outline: none;
+    }
   }
-}
 
+  section.userName {
+    h1 {
+      background-color: #505b72;
+      color: #fff;
+      padding: 15px 20px;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: Roboto, Helvetica Neue, sans-serif;
+    }
+  }
 
+  ul.chatList {
+    margin: 0;
+    padding: 15px;
+    li {
+      list-style: none;
+      border-bottom: 1px solid #EAECF0;
+      padding: 10px;
+      cursor: pointer;
+      color: #c1c9d8;
+      transition: all 300ms;
+      &:hover {
+        color: #3b4354;
+      }
+      .avatar {
+        min-width: 45px;
+        md-icon {
+          zoom: 2;
+        }
+      }
+      .info {
+        font-size: 12px;
+        .fullName {
+          color: #3b4354;
+          font-weight: 700;
+        }
+        .lastChatMessageText {
+          font-weight: 400;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .lastChatDate {
+          text-align: right;
+          font-weight: 100;
+        }
+      }
 
-
-
-
-
-
-
-
-
-
-
+    }
+  }
 
   .chat-fab {
     position: fixed;
     bottom: 10px;
     right: 10px;
   }
-  .chat-panel-wrapper{
+  .chat-panel-wrapper {
     position: fixed;
     height: 100vh;
     width: 400px;
@@ -42,7 +81,7 @@ section.userName{
     transition: all 0.3s linear;
     md-list {
       padding: 0;
-      .online-icon{
+      .online-icon {
         color: green;
       }
       .fav-button.md-icon-button {
@@ -56,25 +95,25 @@ section.userName{
         }
       }
     }
-    &.toggle-chat{
+    &.toggle-chat {
       max-width: 400px;
     }
   }
 
   /* The finishing CSS styles for the enter animation */
   .ng-enter {
-    transition:0.2s linear all;
-    opacity:0;
+    transition: 0.2s linear all;
+    opacity: 0;
   }
 
   .ng-enter.ng-enter-active {
-    opacity:1;
+    opacity: 1;
   }
   .ng-leave {
-    transition:0.2s linear all;
-    opacity:1;
+    transition: 0.2s linear all;
+    opacity: 1;
   }
   .ng-leave.ng-leave-active {
-    opacity:0;
+    opacity: 0;
   }
 }

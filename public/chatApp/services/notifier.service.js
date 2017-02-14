@@ -1,8 +1,8 @@
 angular.module('chat')
-    .factory('notifier', notifier);
+    .factory('notifierService', notifierService);
 
 
-function notifier() {
+function notifierService() {
 
     let service = {
         notifyMe: notifyMe

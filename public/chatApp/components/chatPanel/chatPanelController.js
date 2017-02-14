@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', 'dataService', 'notifier'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', 'dataService', 'socketComunicationService', 'notifierService'];
 
-function ChatPanelCtrl($scope, $timeout, $q, dataService, notifier) {
+function ChatPanelCtrl($scope, $timeout, $q, dataService, socketComunicationService, notifierService) {
 
 
 
@@ -22,6 +22,7 @@ function ChatPanelCtrl($scope, $timeout, $q, dataService, notifier) {
     //Functions
     vm.getFullNamesByString = getFullNamesByString;
     vm.onAutocompleteSelect = onAutocompleteSelect;
+    vm.openChatWindow = openChatWindow;
 
     onInit();
 
@@ -57,6 +58,10 @@ function ChatPanelCtrl($scope, $timeout, $q, dataService, notifier) {
     }
     //Autocomplete END
 
+
+    function openChatWindow(chatId) {
+        socketComunicationService.openChatWindow(chatId);
+    }
 
 
 
@@ -224,7 +229,7 @@ function ChatPanelCtrl($scope, $timeout, $q, dataService, notifier) {
             })[0];
             user.newText = true;
             if (Object.keys(vm.chatInstance).length === 0 && vm.chatInstance.constructor === Object) {
-                notifier.notifyMe('New message', `${data.author} messaged you`, data);
+                notifierService.notifyMe('New message', `${data.author} messaged you`, data);
             }
 
             $scope.$apply();

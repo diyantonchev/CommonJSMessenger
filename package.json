@@ -17,6 +17,7 @@
     "body-parser": "1.15.2"
   },
   "dependencies": {
+    "gulp-shell": "^0.5.2",
     "socket.io-stream": "^0.9.1",
     "socketio-file-upload": "^0.6.0"
   }
