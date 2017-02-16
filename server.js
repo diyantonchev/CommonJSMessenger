@@ -14,7 +14,7 @@ require('./server/models/chatUserRelation.model');
 require('./server/models/chatMessage.model');
 
 
-mongoose.Promise = Promise;
+mongoose.Promise = global.Promise;
 const port = 3000;
 const connection = 'mongodb://localhost:27017/chat';
 
@@ -84,27 +84,31 @@ app.get('/fullNamesByString', (req, res) => {
 
 
 app.get('/chatHistoryBrief', (req, res) => {
+    console.log('chatHistoryBrief',req.query);
     ChatUserRelation
         .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
         .select('creatorId participants')
         .then((data) => {
-            let result = JSON.parse(JSON.stringify(data.history));
-            console.log(result);
-            let final = result.map((item) => {
+            let result = JSON.parse(JSON.stringify(data));
+            console.log('result ----> ',result);
+            return;
+            let final = result.map((chat) => {
 
-                console.log(item);
 
 
-                // item.id = item._id,
-                // item.isFavourite =true,
-                // item.isRoom =false,
-                // item.isOnline =true,
-                // item.lastChatMessageText ='Lorem ipsum dolor sit amet, consectetur. dolor sit amet, consectetur um dolor sit amet, consectetur. dolor sit amet, consectetur...',
-                // item.lastChatDate = new Date(2017, 2, 2)
+
+                // chat.id = item._id,
+                // chat.isFavourite =true,
+                // chat.isRoom = false, // participants > 2 ?
+                // chat.isOnline = true, // true
+                // chat.lastChatMessageText ='Lorem ipsum dolor sit amet, consectetur. dolor sit amet, consectetur um dolor sit amet, consectetur. dolor sit amet, consectetur...',
+                // chat.lastChatDate = new Date(2017, 2, 2);
+
+
                 return item;
             });
             res.json(final);
-        });
+        }).catch(console.log);
 });
 
 
