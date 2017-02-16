@@ -40,48 +40,20 @@
                     </div>
                 </md-toolbar>
 
-
                 <ul class="chatList">
-                    <li class="noselect" ng-click="vm.openChatWindow(user.id)" ng-repeat="user in vm.currentUserInfo.chatHistory" layout="row">
-
+                    <li class="noselect" ng-click="vm.openChatWindow(chat.id)" ng-repeat="chat in vm.currentUserInfo.chatHistory" layout="row">
                         <div class="avatar" layout="row"  layout-align="center center">
                             <md-icon>person</md-icon>
                         </div>
                         <div class="info" flex>
-                            <div class="fullName">{{user.fullName}}</div>
-                            <div class="lastChatMessageText">{{user.lastChatMessageText}}</div>
-                            <div class="lastChatDate">{{user.lastChatDate | date:'medium'}}</div>
+                            <div class="fullName">{{chat.fullName}}</div>
+                            <div class="lastChatMessageText">{{chat.lastChatMessageText}}</div>
+                            <div class="lastChatDate">{{chat.lastChatDate | date:'medium'}}</div>
                         </div>
 
                     </li>
                 </ul>
 
-
-                <!--<md-list flex>-->
-                    <!--<md-list-item class="md-3-line" ng-repeat="userr in vm.users"-->
-                                                 <!--ng-if="userr._id != user._id" ng-click="vm.changeChatInstance(userr)">-->
-                    <!--<div class="md-list-item-text user" layout="row">-->
-                        <!--<h3>{{userr.fullName}}</h3>-->
-                        <!--<span flex></span>-->
-                        <!--<ng-md-icon icon="chat" ng-show="userr.newText"></ng-md-icon>-->
-                        <!--<ng-md-icon class="online-icon" icon="fiber_manual_record" ng-show="userr.online"></ng-md-icon>-->
-                        <!--<md-button aria-label="menu" class="md-secondary md-icon-button fav-button"-->
-                                   <!--ng-click="vm.switchFavourite(userr, user)">-->
-                            <!--<ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>-->
-                        <!--</md-button>-->
-                    <!--</div>-->
-                <!--</md-list-item>-->
-                    <!--<md-list-item class="md-3-line" ng-repeat="userr in vm.offlineUsers" ng-click="vm.changeChatInstance(userr)">-->
-                        <!--<div class="md-list-item-text user" layout="row">-->
-                            <!--<h3>{{userr.fullName}}</h3>-->
-                            <!--<span flex></span>-->
-                            <!--<md-button aria-label="menu" class="md-secondary md-icon-button fav-button"-->
-                                       <!--ng-click="vm.switchFavourite(userr, user)">-->
-                                <!--<ng-md-icon icon="{{userr.favourite}}" size="36"></ng-md-icon>-->
-                            <!--</md-button>-->
-                        <!--</div>-->
-                    <!--</md-list-item>-->
-                <!--</md-list>-->
             </md-tab>
 
 
@@ -151,12 +123,13 @@
 </div>
 
 
+<div class="chat-container"></div>
 
-<chat-window
-        toggled="vm.singleToggle"
-        chat-instance="vm.chatInstance"
-        msg-send-function="vm.sendMsgToChatInstance"
-        file-upload="vm.fileUpload"
-        file-download="vm.fileDownload"
->
-</chat-window>
+<!--<chat-window-->
+        <!--toggled="vm.singleToggle"-->
+        <!--chat-instance="vm.chatInstance"-->
+        <!--msg-send-function="vm.sendMsgToChatInstance"-->
+        <!--file-upload="vm.fileUpload"-->
+        <!--file-download="vm.fileDownload"-->
+<!--&gt;-->
+<!--</chat-window>-->

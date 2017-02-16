@@ -100,6 +100,15 @@ chat-panel {
     }
   }
 
+  .chat-container{
+    position: absolute;
+    bottom: 0;
+    right: 400px;
+  }
+
+
+
+
   /* The finishing CSS styles for the enter animation */
   .ng-enter {
     transition: 0.2s linear all;

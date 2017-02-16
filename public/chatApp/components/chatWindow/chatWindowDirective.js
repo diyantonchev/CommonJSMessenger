@@ -3,11 +3,8 @@ angular.module('chat').directive('chatWindow', function () {
     return {
         restrict: 'E',
         scope: {
-            toggled: '=',
-            chatInstance: '=',
-            msgSendFunction: '=',
-            fileUpload: '=',
-            fileDownload: '=',
+           chatId:'<',
+           userId:'<',
         },
         templateUrl: 'chatApp/components/chatWindow/chatWindow.html',
         controller: 'ChatWindowCtrl',
