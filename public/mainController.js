@@ -6,6 +6,8 @@ function MainCtrl(authService) {
 
     let vm = this;
     vm.loginError = false;
+    
+    vm.accessToken = localStorage.getItem('accessToken');
 
     vm.login = function (username, password) {
         authService.login({username:username, password:password}).then((response) => {

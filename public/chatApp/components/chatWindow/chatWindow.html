@@ -1,56 +1,14 @@
 <div layout="column" layout-align="space-between stretch">
-    <h2>{{vm.chatId}} | {{vm.userId}}</h2>
+    <section class="header" layout="row" layout-align="center center">
+        <h2 flex title="{{vm.chatHeader}}">{{vm.chatHeader}}</h2>
+        <md-button class="md-icon-button md-accent" ng-click="vm.destroyChatWindow()"><md-icon>clear</md-icon></md-button>
+    </section>
     <ul flex class="messages">
-        <li ng-class="{ownMessage : message.authorId === vm.ownId}" ng-repeat="message in vm.messages">
+        <li title="{{message.messageDate | date:'medium'}}" ng-class="{ownMessage : message.authorId === vm.ownId}" ng-repeat="message in vm.messages">
             <div>{{message.messageBody}}</div>
-            <div class="date">{{message.messageDate}}</div>
         </li>
     </ul>
     <div class="user-input">
         <input ng-model="vm.userMessage" ng-keypress="vm.sendMessage($event)" placeholder="Enter your message..." type="text" />
     </div>
 </div>
-
-<!--<md-whiteframe class="md-whiteframe-4dp" layout="column" layout-align="center center">-->
-<!--<md-toolbar class="md-primary md-hue-2" layout="row" layout-align="center center">-->
-<!--<div flex class="md-toolbar-tools">-->
-<!--<h2 class="md-flex">-->
-<!--{{chatInstance.friend}}-->
-<!--</h2>-->
-<!--</div>-->
-<!--<span flex></span>-->
-
-
-<!--<md-button class="md-icon-button" aria-label="Close Room" ng-click="vm.closeChatInstance()">-->
-<!--<ng-md-icon flex icon="close"></ng-md-icon>-->
-<!--</md-button>-->
-<!--</md-toolbar>-->
-
-<!--<md-content flex layout-padding scroll-events chat-instance="chatInstance.messages">-->
-<!--<div class="chat-message" ng-class="msg.styleClass" ng-repeat="msg in chatInstance.messages">-->
-<!--<div class="chat-message-wrapper">-->
-<!--<div>{{msg.author}}</div>-->
-<!--<div class="msg">-->
-<!--<span ng-if="!msg.isFile">{{msg.text}}</span>-->
-<!--<img class="msg-img" ng-if="msg.isImg && msg.isFile" ng-src="files/{{msg._id}}.{{msg.extension}}">-->
-<!--<a ng-if="!msg.isImg && msg.isFile" ng-click="fileDownload(msg._id, msg.extension)">{{msg._id}}.{{msg.extension}}</a>-->
-<!--<md-tooltip md-direction="right" md-z-index="9999">{{msg.date| date:'HH:mm:ss'}}</md-tooltip>-->
-<!--</div>-->
-<!--</div>-->
-<!--</div>-->
-<!--</md-content>-->
-<!--<md-toolbar layout-padding class="md-primary md-hue-2 input-toolbar" layout="row" layout-align="center center">-->
-<!--<textarea class="input-area" flex="60" type="text" placeholder="Type a message..." ng-model="vm.msgToSend"-->
-<!--input-model="vm.msgToSend" focus-enter-->
-<!--send-func="msgSendFunction(chatInstance, vm.msgToSend)"></textarea>-->
-<!--<md-button class="md-icon-button" aria-label="Attach File">-->
-<!--<label for="file-input">-->
-<!--<ng-md-icon flex icon="attach_file"></ng-md-icon>-->
-<!--</label>-->
-<!--</md-button>-->
-<!--<input id="file-input" type="file" style="opacity: 0;height: 0; width: 0; position: absolute; z-index: -1;" fileread="fileUpload">-->
-<!--<md-button class="md-raised md-primary" flex ng-click="vm.msgSendFunction(chatInstance, vm.msgToSend)"-->
-<!--ng-disabled="!vm.msgToSend">Send-->
-<!--</md-button>-->
-<!--</md-toolbar>-->
-<!--</md-whiteframe>-->

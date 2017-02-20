@@ -7,7 +7,7 @@ function dataService($http) {
     let service = {
 
         getCurrentUserInfo:getCurrentUserInfo,
-        getUserNamesByString:getUserNamesByString,
+        getFullNamesByString:getFullNamesByString,
         getChatHistoryBrief:getChatHistoryBrief,
 
 
@@ -38,7 +38,7 @@ function dataService($http) {
     }
 
 
-    function getUserNamesByString(searchString){
+    function getFullNamesByString(searchString){
         return $http({
             method: "GET",
             url: '/fullNamesByString',

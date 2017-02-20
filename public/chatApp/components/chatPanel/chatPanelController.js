@@ -53,11 +53,12 @@ function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunic
         console.log('onAutocompleteSelect',userId)
     }
 
-    function openChatWindow(chatId) {
+    function openChatWindow(chatid) {
         
-        let el = $compile( `<chat-window chatId="${chatId}"></chat-window>` )( $scope );
-        // TODO:
+        let el = $compile( `<chat-window chatid="\'${chatid}\'"></chat-window>` )( $scope );
         angular.element(document.querySelector('div.chat-container')).append( el );
+        console.log(el);
+
     }
 
 

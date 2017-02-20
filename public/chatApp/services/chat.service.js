@@ -20,12 +20,12 @@ function chatService($http) {
         console.log('openChat', userId);
     }
 
-    function getChatHistory(userId, chatId, lastMessageId) {
+    function getChatHistory(chatId, lastMessageId) {
         return $http({
             method: 'GET',
             url: '/chatHistory',
             headers: { 'Content-Type': 'application/json' },
-            params: { userId, chatId, lastMessageId }
+            params: { chatId, lastMessageId }
         }).then((response) => {
             return response.data;
         }).catch(console.err);

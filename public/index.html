@@ -34,7 +34,7 @@
 </form>
 
 <form ng-if="vm.accessToken">
-    <button ng-click="vm.logout()">Logout</button>
+    <button ng-click="vm.logout()">Logout</button> {{vm.accessToken}}
 </form>
 
 <chat-panel
