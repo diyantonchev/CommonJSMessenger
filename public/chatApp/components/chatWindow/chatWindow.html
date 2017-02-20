@@ -1,13 +1,13 @@
 <div layout="column" layout-align="space-between stretch">
     <h2>{{vm.chatId}} | {{vm.userId}}</h2>
     <ul flex class="messages">
-        <li ng-class="{ownMessage : message.authorId == vm.ownId}" ng-repeat="message in vm.messages">
-            <div>{{message.body}}</div>
-            <div class="date">{{message.body}}</div>
+        <li ng-class="{ownMessage : message.authorId === vm.ownId}" ng-repeat="message in vm.messages">
+            <div>{{message.messageBody}}</div>
+            <div class="date">{{message.messageDate}}</div>
         </li>
     </ul>
     <div class="user-input">
-        <input ng-model="vm.userMessage" ng-keypress="vm.sendMessage($event,e,this)" placeholder="Enter your message..." type="text" />
+        <input ng-model="vm.userMessage" ng-keypress="vm.sendMessage($event)" placeholder="Enter your message..." type="text" />
     </div>
 </div>
 

@@ -54,8 +54,8 @@ function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunic
     }
 
     function openChatWindow(chatId) {
-
-        let el = $compile( '<chat-window></chat-window>' )( $scope );
+        
+        let el = $compile( `<chat-window chatId="${chatId}"></chat-window>` )( $scope );
         // TODO:
         angular.element(document.querySelector('div.chat-container')).append( el );
     }

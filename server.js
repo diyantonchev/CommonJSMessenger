@@ -4,7 +4,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const socketStream = require('socket.io-stream');
 const path = require('path');
-let fs = require('fs');
+const fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 // const routes = require('./server/routes');
@@ -23,7 +23,7 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
@@ -62,14 +62,9 @@ app.get('/fillChats', (req, res) => {
     //     message: "Hey, нямам какво да добавя",
     //     date: new Date(2017,1,14)
     // }).save();
-
-
-
 });
 
-
 // GET REQUESTS
-
 
 app.get('/currentUserInfo', (req, res) => {
     User
@@ -83,7 +78,7 @@ app.get('/currentUserInfo', (req, res) => {
 app.get('/fullNamesByString', (req, res) => {
     let regexp = new RegExp(req.query.searchString, "gui");
     User
-        .find({fullName: {$regex: regexp}})
+        .find({ fullName: { $regex: regexp } })
         .select('fullName')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
@@ -97,9 +92,8 @@ app.get('/fullNamesByString', (req, res) => {
 });
 
 app.get('/chatHistoryBrief', (req, res) => {
-    console.log('chatHistoryBrief', req.query);
     ChatUserRelation
-        .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
+        .find({ $or: [{ creatorId: req.query.accessToken }, { participants: req.query.accessToken }] })
         .select('creatorId participants')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
@@ -119,14 +113,7 @@ app.get('/chatHistoryBrief', (req, res) => {
         }).catch(console.log);
 });
 
-
-
-
-
-
-
-
-app.get('/getMessagesBySearchstring ', (req, res) => {
+app.get('/getMessagesBySearchstring', (req, res) => {
     /**
      * params: -
      searchstring – searched string
@@ -142,22 +129,24 @@ app.get('/getMessagesBySearchstring ', (req, res) => {
 });
 
 
-app.get('/getChatHistory ', (req, res) => {
-    /**
-     * getChatHistory(user/roomID, lastMessageId)
-     * userID/roomID – id related to the specific room
-     * lastMessageId – last loaded messageID (so we can load 20 more for pagination)
-     return: array of messages history notes
-     [
-     {
-         messageId::string,
-         authorName::string,
-         messageDate::Date,
-         messageBody::string,
-         messageType::int(plain text = 1, image = 2, file = 3)
-     }
-     ]
-     */
+app.get('/chatHistory', (req, res) => {
+    console.log(req.query)
+    ChatMessage
+        .find({ chatId: mongoose.Types.ObjectId(req.query.chatId) })
+        .then((messages) => {
+            let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
+                return {
+                    messageId: msg._id,
+                    authorName: 'Za sega Pesho', //TODO
+                    authorId: msg.userId,
+                    messageDate: msg.date,
+                    messageBody: msg.message,
+                    messageType: 1 //TODO
+                }
+            });
+
+            res.json(resMessages);
+        });
 });
 
 
@@ -167,18 +156,10 @@ app.get('/getMatchingUsername', (req, res) => {
         .find({})
         .select('_id username fullName avatar')
         .where('_id').ne(req.searchString)
-        .where('username').findOne({"username": {$regex: ".*son.*"}})
+        .where('username').findOne({ "username": { $regex: ".*son.*" } })
         .then((users) => {
             res.json(users);
         });
-    /*
-     * [
-     {name:”Ivan Ivanov”, id: 34},
-     {name:”Dragan Ivanov”, id: 14}
-     ]
-     * */
-
-
 });
 
 
@@ -192,16 +173,15 @@ app.get('/users', (req, res) => {
         });
 });
 
-
 // POST REQUESTS
 app.post('/login', (req, res) => {
     let reqUser = req.body;
     User.findOne(reqUser)
         .select('_id').then((user) => {
-        res.json({accessToken: user._id});
-    }).catch((err) => {
-        res.status(418).send('Invalid username and/or password');
-    });
+            res.json({ accessToken: user._id });
+        }).catch((err) => {
+            res.status(418).send('Invalid username and/or password');
+        });
 });
 
 
@@ -213,7 +193,7 @@ app.post('/createRoom', (req, res) => {
 
     new Room({
         name: roomName,
-        users: [{username: userName, fullName: fullName, id: userId}],
+        users: [{ username: userName, fullName: fullName, id: userId }],
         messages: []
     }).save((err, data) => {
         if (err) {
@@ -232,7 +212,7 @@ app.post('/favourite', (req, res) => {
             $push: {
                 "favourites": favUser
             }
-        }, {safe: true, new: true, upsert: true}, (err, user) => {
+        }, { safe: true, new: true, upsert: true }, (err, user) => {
             res.json(user.favourites);
         });
     }
@@ -241,7 +221,7 @@ app.post('/favourite', (req, res) => {
             $pull: {
                 "favourites": favUser
             }
-        }, {safe: true, new: true, upsert: true}, (err, user) => {
+        }, { safe: true, new: true, upsert: true }, (err, user) => {
             res.json(user.favourites);
         });
     }
@@ -259,6 +239,17 @@ let users = [];
 
 io.sockets.on('connection', (socket) => {
 
+     socket.on('message', (data) => {
+         console.log(data);
+         socket.emit('messageSent', data)
+        //   io.socket.to(data.room).emit('messageSent', {
+        //         author: data.author,
+        //         text: data.msg,
+        //         date: Date.now(),
+        //         isFile: false
+        //     });
+       // });
+    });
 
     socket.emit('user-connected', 'You are logged in!');
 

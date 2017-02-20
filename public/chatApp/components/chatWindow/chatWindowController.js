@@ -1,78 +1,43 @@
 angular.module('chat').controller('ChatWindowCtrl', ChatWindowCtrl);
 
-ChatWindowCtrl.$inject = ['$scope'];
+ChatWindowCtrl.$inject = ['$scope', 'chatService'];
 
-function ChatWindowCtrl($scope) {
+function ChatWindowCtrl($scope, chatService) {
 
-    let vm = this;
+//     let vm = this;
 
-    vm.chatId = $scope.chatId;
-    vm.userId = $scope.userId;
+//     vm.socket = io.connect();
 
-    vm.sendMessage = function(event){
-        if(event.keyCode == 13){
-            console.log('sending message: ' + vm.userMessage);
-            vm.userMessage = '';
-        }
-    }
+//     vm.chatid = $scope.chatid;
+//     vm.userid = $scope.userid;
+// console.log($scope);
+    
 
-    vm.ownId = localStorage.getItem('accessToken');
-    vm.chatTitle = 'Chat name';
+//     vm.sendMessage = sendMessage;
 
-    // TODO : hardcoded values
-    vm.messages = [
-        {
-            authorId:"589dbe874a1dad6d2e933fc3",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-01-03 22:00:00.000Z",
-            body: "lor sit amet, consectetur adipiscing elit. Praesent auctor porttitor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fce",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 22:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fc3",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 21:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fce",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 22:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fc3",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 21:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fce",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 22:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        },
-        {
-            authorId:"589dbe874a1dad6d2e933fc3",
-            authorName:"qwerty",
-            avatar:false,
-            date:"2017-02-13 21:00:00.000Z",
-            body: "tor est, elementum porta ipsum dictum a. Aenean sit amet finibus elit."
-        }
-    ];
+//     vm.ownId = localStorage.getItem('accessToken');
+//     vm.chatTitle = 'Chat name';
 
+//     onInit();
 
+//     function onInit() {
+//         // console.log(vm.chatId);
+//         chatService.getChatHistory('kur', '58a599029c87b61b600fa279')
+//             .then((messages) => {
+//                 console.log(messages);
+//                 vm.messages = messages;
+//             });
+//     }
+
+//     function sendMessage(event) {
+//         if (event.keyCode == 13 && vm.userMessage) {
+//             vm.socket.emit('message', vm.userMessage);
+//             vm.userMessage = '';
+//             vm.socket.on('messageSent', (msg) =>{
+//                 console.log(msg)
+//             });
+//         }
+//     }
 
 
 };
