@@ -9,6 +9,7 @@ function dataService($http) {
         getCurrentUserInfo:getCurrentUserInfo,
         getFullNamesByString:getFullNamesByString,
         getChatHistoryBrief:getChatHistoryBrief,
+        getChatIdForUsers:getChatIdForUsers,
 
 
         createNewRoom: createNewRoom,
@@ -55,6 +56,17 @@ function dataService($http) {
             url: '/chatHistoryBrief',
             headers: { 'Content-Type': 'application/json' },
             params: {accessToken : localStorage.getItem('accessToken')}
+        }).then((response) => {
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+    function getChatIdForUsers(arrayOfUsersIds) {
+        return $http({
+            method: "GET",
+            url: '/chatIdForUsers',
+            headers: { 'Content-Type': 'application/json' },
+            params: {arrayOfUsersIds}
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);

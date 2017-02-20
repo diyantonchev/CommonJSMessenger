@@ -68,7 +68,16 @@ app.get('/fillChats', (req, res) => {
 
 
 app.get('/chatIdForUsers', (req, res) => {
+    console.log(req.query.arrayOfUsersIds);
 
+    ChatUserRelation
+        .find(
+            {
+                $and:[
+                    {participants : 'this.participants.length = '+req.query.arrayOfUsersIds}
+                ]
+            }
+        )
 });
 
 app.get('/currentUserInfo', (req, res) => {
@@ -96,25 +105,40 @@ app.get('/fullNamesByString', (req, res) => {
         });
 });
 
+
 app.get('/chatHistoryBrief', (req, res) => {
     ChatUserRelation
         .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
         .select('creatorId participants')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
-            let final = result.map((chat) => {
+            let chat = [];
+            let v;
+            for (v in result) {
+                result[v].id = result[v]._id;
+                result[v].isRoom = result[v].participants.length > 2;
+                ChatMessage
+                    .findOne({'chatId': result[v]._id}).sort({'date': 'descending'}).then(function (message) {
+                    result[v].lastChatMessageText = message.message;
+                    result[v].lastChatDate = message.date;
+                    result[v].userId = message.userId;
+                }).then(function () {
+                    User
+                        .findById(result[v].userId).then(function (userData) {
+                        result[v].fullName = userData.fullName;
+                        result[v].avatar = userData.avatar;
+                        result[v].isOnline = true; // simulate online
+                        result[v].isFavourite = true; // simulate favourite user
+                        chat.push(result[v])
+                    });
+                });
+            }
 
-                chat.id = chat._id;
-                chat.isFavourite = true;
-                chat.isRoom = chat.participants.length > 2;
-                chat.isOnline = true;
-                chat.lastChatMessageText = 'Lorem ipsum dolor sit amet, consectetur. dolor sit amet, consectetur um dolor sit amet, consectetur. dolor sit amet, consectetur...';
-                chat.lastChatDate = new Date(2017, 2, 2);
+            // lame
+            setTimeout(function () {
+                res.json(chat);
+            }, 500)
 
-
-                return chat;
-            });
-            res.json(final);
         }).catch(console.log);
 });
 
@@ -135,17 +159,17 @@ app.get('/getMessagesBySearchstring', (req, res) => {
 
 
 app.get('/chatHistory', (req, res) => {
-    console.log(req.query)
+    console.log('get chatHistory',req.query)
     ChatMessage
         .find({chatId: mongoose.Types.ObjectId(req.query.chatId)})
         .then((messages) => {
             let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
                 return {
-                    messageId: msg._id,
+                    messageid: msg._id,
                     authorName: 'Za sega Pesho', //TODO
-                    authorId: msg.userId,
-                    messageDate: msg.date,
-                    messageBody: msg.message,
+                    userid: msg.userid,
+                    date: msg.date,
+                    message: msg.message,
                     messageType: 1 //TODO
                 }
             });
@@ -156,7 +180,7 @@ app.get('/chatHistory', (req, res) => {
 
 
 app.get('/getMatchingUsername', (req, res) => {
-
+console.log('getMatchingUsername');
     User
         .find({})
         .select('_id username fullName avatar')
@@ -234,54 +258,43 @@ app.post('/favourite', (req, res) => {
 
 });
 
-app.post('/download', (req, res) => {
-    let file = path.join(__dirname, 'public/files', req.body.filePath);
-    res.download(file, req.body.filePath);
-});
-
-
-let users = [];
-
 io.sockets.on('connection', (socket) => {
+    console.log('socket: on connection');
 
     socket.on('message', (data) => {
         //Insert into DB
+        console.log('socket: on message');
 
         new ChatMessage({
             chatId: data.chatid,
             userId: data.userid,
             message: data.message,
             date: new Date()
-        }).save(function(error,response){
-            if(error){
+        }).save(function (error, response) {
+            if (error) {
                 console.log(error);
-            }else{
-                socket.emit('messageReceivedByServer', {response});
+            } else {
+                socket.emit('messageReceivedByServer', {
+                    messageid: response._id,
+                    chatId: response.chatId,
+                    date: response.date,
+                    message: response.message,
+                    userId: response.userId,
+                });
             }
 
         });
     });
 
 
-    socket.emit('user-connected', 'You are logged in!');
 
     socket.on('user-disconnected', () => {
         // TODO:
-        // io.sockets.emit('user', userId);
+        console.log('socket: on user-disconnected');
     });
 
 
-    socket.on('chat-open', (chatId) => {
-        //TODO:
-    });
 
-    socket.on('chat-close', (chatId) => {
-
-    });
-
-    socket.on('message-send', (data) => {
-        //TODO
-    });
 
 })
 ;

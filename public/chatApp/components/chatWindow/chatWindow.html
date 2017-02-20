@@ -4,8 +4,8 @@
         <md-button class="md-icon-button md-accent" ng-click="vm.destroyChatWindow()"><md-icon>clear</md-icon></md-button>
     </section>
     <ul flex class="messages">
-        <li title="{{message.messageDate | date:'medium'}}" ng-class="{ownMessage : message.authorId === vm.ownId}" ng-repeat="message in vm.messages">
-            <div>{{message.messageBody}}</div>
+        <li title="{{message.date | date:'medium'}}" ng-class="{ownMessage : message.userid === vm.ownId}" ng-repeat="message in vm.messages">
+            <div>{{message.message}}</div>
         </li>
     </ul>
     <div class="user-input">

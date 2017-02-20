@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatWindowCtrl', ChatWindowCtrl);
 
-ChatWindowCtrl.$inject = ['$scope', 'chatService'];
+ChatWindowCtrl.$inject = ['$scope', '$timeout', 'chatService'];
 
-function ChatWindowCtrl($scope, chatService) {
+function ChatWindowCtrl($scope, $timeout, chatService) {
 
     let vm = this;
 
@@ -18,6 +18,8 @@ function ChatWindowCtrl($scope, chatService) {
 
     vm.getChatIdForUsers = getChatIdForUsers;
     vm.destroyChatWindow = destroyChatWindow;
+    vm.scrollChatToBottom = scrollChatToBottom;
+    vm.focusInput = focusInput;
 
 
     vm.sendMessage = sendMessage;
@@ -37,14 +39,16 @@ function ChatWindowCtrl($scope, chatService) {
         if (vm.chatid) {
             chatService.getChatHistory(vm.chatid)
                 .then((messages) => {
-                    console.log(messages);
                     vm.messages = messages;
+                    vm.scrollChatToBottom();
+                    vm.focusInput();
                 });
         } else {
             this.getChatIdForUsers(localStorage.getItem('accessToken'), vm.userid).then(function (param) {
                 chatService.getChatHistory(param);
             })
         }
+
     }
 
     function sendMessage(event) {
@@ -54,23 +58,33 @@ function ChatWindowCtrl($scope, chatService) {
     }
 
 
-    function getChatIdForUsers(user1, user2) {
-
-    }
-
     function destroyChatWindow() {
-        console.log(document.querySelector('chat-window[chatid=\''+ vm.chatid +'\']'),'chat-window[chatid=\''+ vm.chatid +'\']');
         $scope.$destroy();
-        angular.element(document.querySelector(`chat-window[chatid=\'${vm.chatid}\']`)).empty();
+        angular.element(document.querySelector(`chat-window[chatid="'${vm.chatid}'"]`)).remove();
     }
 
+    function scrollChatToBottom() {
+        $timeout(function(){ // dirty
+            let elem = document.querySelector(`chat-window[chatid="'${vm.chatid}'"] ul`);
+            elem.scrollTop = elem.scrollHeight;
+
+
+        },1);
+    }
+    function focusInput() {
+        angular.element(document.querySelector(`chat-window[chatid="'${vm.chatid}'"] input[type=text]`)).focus();
+
+    }
 
     // callback
     vm.socket.on('messageReceivedByServer', (response) => {
-        if (response === true) {
+        if (response.message) {
             vm.userMessage = ''; // on success clearing the message mox and wait for another message input
-            $scope.$apply()
+            vm.messages.push(response);
+            $scope.$apply();
+            vm.scrollChatToBottom();
         }
     });
+
 
 };

@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q','$compile', 'dataService', 'socketComunicationService', 'notifierService'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService', 'socketComunicationService', 'notifierService'];
 
-function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunicationService, notifierService) {
+function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, socketComunicationService, notifierService) {
 
     let vm = this;
 
@@ -20,6 +20,7 @@ function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunic
     //Functions
     vm.getFullNamesByString = getFullNamesByString;
     vm.onAutocompleteSelect = onAutocompleteSelect;
+    vm.createNewChatWindow = createNewChatWindow;
     vm.openChatWindow = openChatWindow;
     vm.panelsToggle = panelsToggle;
 
@@ -42,7 +43,7 @@ function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunic
         if (vm.usersByNameAutocompletePromise) $timeout.cancel(vm.usersByNameAutocompletePromise);
         vm.usersByNameAutocompletePromise = $timeout(function () {
             dataService.getFullNamesByString(vm.searchText).then(function (data) {
-                console.log('controller-->',data);
+                console.log('controller-->', data);
                 deferred.resolve(data);
             });
         }, 500);
@@ -50,15 +51,32 @@ function ChatPanelCtrl($scope, $timeout, $q,$compile, dataService, socketComunic
     }
 
     function onAutocompleteSelect(userId) {
-        console.log('onAutocompleteSelect',userId)
+
+
+
+        dataService.getChatIdForUsers([vm.accessToken,userId]).then(function (chatId) {
+            if (chatId) {
+                vm.openChatWindow(chatId);
+            } else {
+                vm.createNewChatWindow();
+            }
+        })
+
+    }
+
+    function createNewChatWindow() {
+        let el = $compile(`<chat-window></chat-window>`)($scope);
+        angular.element(document.querySelector('div.chat-container')).append(el);
     }
 
     function openChatWindow(chatid) {
-        
-        let el = $compile( `<chat-window chatid="\'${chatid}\'"></chat-window>` )( $scope );
-        angular.element(document.querySelector('div.chat-container')).append( el );
-        console.log(el);
-
+        let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`)
+        if (!matches) {
+            let el = $compile(`<chat-window chatid="\'${chatid}\'"></chat-window>`)($scope);
+            angular.element(document.querySelector('div.chat-container')).append(el);
+        } else {
+            angular.element(matches).focus();
+        }
     }
 
 

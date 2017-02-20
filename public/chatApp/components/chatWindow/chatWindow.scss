@@ -1,34 +1,34 @@
-chat-window{
-  width:300px;
+chat-window {
+  width: 300px;
   height: 400px;
-  display:inline-block;
-  border:1px solid #cecece;
-  margin:3px;
-section{
-  &.header{
-    background-color: #9fa8bc;
-    h2{
-      text-transform: uppercase;
-      font-size: 12px;
-      font-weight: 700;
-      color: #313745;
-      margin: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  display: inline-block;
+  border: 1px solid #cecece;
+  margin: 3px;
+  section {
+    &.header {
+      background-color: #9fa8bc;
+      h2 {
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 700;
+        color: #313745;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
-      padding: 5px 10px;
+        padding: 5px 10px;
+      }
     }
   }
-}
 
-  ul.messages{
+  ul.messages {
     height: 336px;
     padding: 5px;
     margin: 0;
-    overflow:auto;
-    li{
-      cursor:pointer;
+    overflow: auto;
+    li {
+      cursor: pointer;
       list-style: none;
       margin-bottom: 20px;
       font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -37,17 +37,17 @@ section{
       color: #696c74;
       padding: 5px;
       border-radius: 6px;
-      background-color:#edeaff;
+      background-color: #edeaff;
     }
-    li.ownMessage{
-      text-align:right;
+    li.ownMessage {
+      text-align: right;
       color: #fff;
       background-color: #9fa8bc;
     }
   }
 
-  .user-input{
-    input[type="text"]{
+  .user-input {
+    input[type="text"] {
       border: 1px solid silver;
       margin: 0;
       width: 100%;
@@ -60,10 +60,7 @@ section{
     }
   }
 
-
 }
-
-
 
 //chat-room {
 //  md-whiteframe {
