@@ -72,7 +72,7 @@ app.get('/chatIdForUsers', (req, res) => {
     let andArr = [];
 
     for (let v in req.query.arrayOfUsersIds) {
-        if(!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined"){
+        if (!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined") {
             res.status(418).send({"message": "Not a valid request."});
             return;
         }
@@ -90,9 +90,9 @@ app.get('/chatIdForUsers', (req, res) => {
         .select('_id')
         .then((userData) => {
             console.log('userData--->', userData);
-            if(userData[0]){
+            if (userData[0]) {
                 res.json(userData[0]._id);
-            }else{
+            } else {
                 res.status(418).send({"message": "No results found"});
             }
         }).catch(console.log);
@@ -248,16 +248,10 @@ app.post('/createChat', (req, res) => {
     ChatUserRelation({
         creatorId: creatorid,
         participants: participants
-    }).save().then(function(response){
-        res.json({"chatid":response._id});
+    }).save().then(function (response) {
+        res.json({"chatid": response._id});
     });
 });
-
-
-
-
-
-
 
 
 app.post('/createRoom', (req, res) => {
