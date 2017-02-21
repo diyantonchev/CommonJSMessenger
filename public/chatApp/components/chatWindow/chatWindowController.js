@@ -1,22 +1,19 @@
 angular.module('chat').controller('ChatWindowCtrl', ChatWindowCtrl);
 
-ChatWindowCtrl.$inject = ['$scope', '$timeout', 'chatService'];
+ChatWindowCtrl.$inject = ['$scope', '$timeout', '$element', 'chatService'];
 
-function ChatWindowCtrl($scope, $timeout, chatService) {
+function ChatWindowCtrl($scope, $timeout, $element, chatService) {
 
     let vm = this;
 
     vm.socket = io.connect();
 
     vm.chatid = $scope.chatid;
-    vm.userid = $scope.userid;
+
+    vm.participants = [];
     vm.chatHeader = '';
 
 
-    console.log($scope);
-
-
-    vm.getChatIdForUsers = getChatIdForUsers;
     vm.destroyChatWindow = destroyChatWindow;
     vm.scrollChatToBottom = scrollChatToBottom;
     vm.focusInput = focusInput;
@@ -31,7 +28,6 @@ function ChatWindowCtrl($scope, $timeout, chatService) {
 
     function onInit() {
 
-        vm.chatHeader = vm.chatid + ' | ' + vm.userid
 
         // Oppening the chat window :
         // if we don't have chat id we need to retreive it based
@@ -39,17 +35,25 @@ function ChatWindowCtrl($scope, $timeout, chatService) {
         if (vm.chatid) {
             chatService.getChatHistory(vm.chatid)
                 .then((messages) => {
+                    vm.chatHeader = vm.chatid;
                     vm.messages = messages;
                     vm.scrollChatToBottom();
                     vm.focusInput();
                 });
         } else {
-            this.getChatIdForUsers(localStorage.getItem('accessToken'), vm.userid).then(function (param) {
-                chatService.getChatHistory(param);
-            })
+            if($scope.participants){
+                vm.participants = $scope.participants.split(',');
+                chatService.createChat(vm.participants)
+                    .then((response) => {
+                        vm.chatid = response.chatid;
+                        vm.chatHeader = vm.chatid;
+                        $element.attr('chatid',vm.chatid);
+                        vm.focusInput();
+                    });
+            }
         }
-
     }
+
 
     function sendMessage(event) {
         if (event.keyCode == 13 && vm.userMessage) {
@@ -60,20 +64,17 @@ function ChatWindowCtrl($scope, $timeout, chatService) {
 
     function destroyChatWindow() {
         $scope.$destroy();
-        angular.element(document.querySelector(`chat-window[chatid="'${vm.chatid}'"]`)).remove();
+        $element.remove();
     }
 
     function scrollChatToBottom() {
         $timeout(function(){ // dirty
-            let elem = document.querySelector(`chat-window[chatid="'${vm.chatid}'"] ul`);
+            let elem = $element.find('ul')[0];
             elem.scrollTop = elem.scrollHeight;
-
-
         },1);
     }
     function focusInput() {
-        angular.element(document.querySelector(`chat-window[chatid="'${vm.chatid}'"] input[type=text]`)).focus();
-
+        $element.focus();
     }
 
     // callback

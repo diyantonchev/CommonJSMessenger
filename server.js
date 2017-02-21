@@ -68,16 +68,34 @@ app.get('/fillChats', (req, res) => {
 
 
 app.get('/chatIdForUsers', (req, res) => {
-    console.log(req.query.arrayOfUsersIds);
+    let inArr = [];
+    let andArr = [];
+
+    for (let v in req.query.arrayOfUsersIds) {
+        if(!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined"){
+            res.status(418).send({"message": "Not a valid request."});
+            return;
+        }
+        andArr.push({"participants": {$in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])]}})
+    }
+    andArr.push({"participants": {$size: req.query.arrayOfUsersIds.length}});
+
 
     ChatUserRelation
         .find(
             {
-                $and:[
-                    {participants : 'this.participants.length = '+req.query.arrayOfUsersIds}
-                ]
+                $and: andArr
             }
         )
+        .select('_id')
+        .then((userData) => {
+            console.log('userData--->', userData);
+            if(userData[0]){
+                res.json(userData[0]._id);
+            }else{
+                res.status(418).send({"message": "No results found"});
+            }
+        }).catch(console.log);
 });
 
 app.get('/currentUserInfo', (req, res) => {
@@ -111,33 +129,44 @@ app.get('/chatHistoryBrief', (req, res) => {
         .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
         .select('creatorId participants')
         .then((data) => {
+
+
             let result = JSON.parse(JSON.stringify(data));
             let chat = [];
             let v;
+
             for (v in result) {
                 result[v].id = result[v]._id;
                 result[v].isRoom = result[v].participants.length > 2;
-                ChatMessage
-                    .findOne({'chatId': result[v]._id}).sort({'date': 'descending'}).then(function (message) {
-                    result[v].lastChatMessageText = message.message;
-                    result[v].lastChatDate = message.date;
-                    result[v].userId = message.userId;
-                }).then(function () {
-                    User
-                        .findById(result[v].userId).then(function (userData) {
-                        result[v].fullName = userData.fullName;
-                        result[v].avatar = userData.avatar;
-                        result[v].isOnline = true; // simulate online
-                        result[v].isFavourite = true; // simulate favourite user
-                        chat.push(result[v])
-                    });
-                });
-            }
+                // Simulated data
+                result[v].lastChatMessageText = 'Simulated last message';
+                result[v].lastChatDate = new Date(); // simulated last msg date
+                result[v].fullName = 'John Doe'; // Simulated username
+                result[v].avatar = false; // simulated avatar
+                result[v].isOnline = true; // simulate online
+                result[v].isFavourite = true; // simulate favourite user
 
-            // lame
-            setTimeout(function () {
-                res.json(chat);
-            }, 500)
+                chat.push(result[v]);
+
+
+                // ChatMessage
+                //     .findOne({'chatId': result[v]._id}).sort({'date': 'descending'}).then(function (message) {
+                //     result[v].lastChatMessageText = message.message;
+                //     result[v].lastChatDate = message.date;
+                //     result[v].userId = message.userId;
+                // })
+                //     .then(function () {
+                //     User
+                //         .findById(result[v].userId).then(function (userData) {
+                //         result[v].fullName = userData.fullName;
+                //         result[v].avatar = userData.avatar;
+                //         result[v].isOnline = true; // simulate online
+                //         result[v].isFavourite = true; // simulate favourite user
+                //         chat.push(result[v])
+                //     });
+                // });
+            }
+            res.json(chat);
 
         }).catch(console.log);
 });
@@ -159,7 +188,6 @@ app.get('/getMessagesBySearchstring', (req, res) => {
 
 
 app.get('/chatHistory', (req, res) => {
-    console.log('get chatHistory',req.query)
     ChatMessage
         .find({chatId: mongoose.Types.ObjectId(req.query.chatId)})
         .then((messages) => {
@@ -180,7 +208,7 @@ app.get('/chatHistory', (req, res) => {
 
 
 app.get('/getMatchingUsername', (req, res) => {
-console.log('getMatchingUsername');
+    console.log('getMatchingUsername');
     User
         .find({})
         .select('_id username fullName avatar')
@@ -212,6 +240,24 @@ app.post('/login', (req, res) => {
         res.status(418).send('Invalid username and/or password');
     });
 });
+
+app.post('/createChat', (req, res) => {
+    let creatorid = req.body.participants[0];
+    let participants = req.body.participants;
+
+    ChatUserRelation({
+        creatorId: creatorid,
+        participants: participants
+    }).save().then(function(response){
+        res.json({"chatid":response._id});
+    });
+});
+
+
+
+
+
+
 
 
 app.post('/createRoom', (req, res) => {
@@ -287,13 +333,10 @@ io.sockets.on('connection', (socket) => {
     });
 
 
-
     socket.on('user-disconnected', () => {
         // TODO:
         console.log('socket: on user-disconnected');
     });
-
-
 
 
 })

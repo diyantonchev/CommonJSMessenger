@@ -25,8 +25,10 @@
                             md-selected-item="vm.selectedUser"
                             md-selected-item-change="vm.onAutocompleteSelect(user.id)"
                             md-search-text="vm.searchText"
+                            md-require-match="true"
                             md-items="user in vm.getFullNamesByString(vm.searchText)"
                             md-item-text="user.fullName"
+                            md-dropdown-items="3"
                             md-min-length="1"
                             placeholder="{{vm.autocompletePlaceholder}}">
                             <md-item-template>
@@ -41,7 +43,7 @@
                 </md-toolbar>
 
                 <ul class="chatList">
-                    <li class="noselect" ng-click="vm.openChatWindow(chat.id)" ng-repeat="chat in vm.currentUserInfo.chatHistory" layout="row">
+                    <li class="noselect" ng-click="vm.openChatWindow(chat.id)" ng-repeat="chat in vm.currentUserInfo.chatHistory track by $index" layout="row">
                         <div class="avatar" layout="row"  layout-align="center center">
                             <md-icon>person</md-icon>
                         </div>

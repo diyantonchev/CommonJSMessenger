@@ -1,8 +1,8 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService', 'socketComunicationService', 'notifierService'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService','chatService', 'socketComunicationService', 'notifierService'];
 
-function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, socketComunicationService, notifierService) {
+function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService, socketComunicationService, notifierService) {
 
     let vm = this;
 
@@ -33,7 +33,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, socketComuni
         });
 
         // Collecting currentUser chat History
-        dataService.getChatHistoryBrief().then(function (data) {
+        chatService.getChatHistoryBrief().then(function (data) {
             vm.currentUserInfo.chatHistory = data;
         });
     }
@@ -43,7 +43,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, socketComuni
         if (vm.usersByNameAutocompletePromise) $timeout.cancel(vm.usersByNameAutocompletePromise);
         vm.usersByNameAutocompletePromise = $timeout(function () {
             dataService.getFullNamesByString(vm.searchText).then(function (data) {
-                console.log('controller-->', data);
                 deferred.resolve(data);
             });
         }, 500);
@@ -51,26 +50,26 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, socketComuni
     }
 
     function onAutocompleteSelect(userId) {
-
-
-
-        dataService.getChatIdForUsers([vm.accessToken,userId]).then(function (chatId) {
-            if (chatId) {
-                vm.openChatWindow(chatId);
-            } else {
-                vm.createNewChatWindow();
-            }
-        })
-
+        if(userId){
+            chatService.getChatIdForUsers([vm.accessToken, userId]).then(function (chatId) {
+                // check if there was previous chat with this user
+                if (chatId) {
+                    vm.openChatWindow(chatId);
+                } else {
+                    vm.createNewChatWindow([vm.accessToken, userId]);
+                }
+            });
+        }
     }
 
-    function createNewChatWindow() {
-        let el = $compile(`<chat-window></chat-window>`)($scope);
+    function createNewChatWindow(participants) {
+        let el = $compile(`<chat-window participants="'${participants}'"></chat-window>`)($scope);
         angular.element(document.querySelector('div.chat-container')).append(el);
     }
 
     function openChatWindow(chatid) {
-        let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`)
+        debugger;
+        let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`);
         if (!matches) {
             let el = $compile(`<chat-window chatid="\'${chatid}\'"></chat-window>`)($scope);
             angular.element(document.querySelector('div.chat-container')).append(el);
