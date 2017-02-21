@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const async = require('async');
 // const routes = require('./server/routes');
 
 require('./server/models/user.model');
@@ -23,7 +24,7 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
@@ -73,19 +74,19 @@ app.get('/chatIdForUsers', (req, res) => {
 
     for (let v in req.query.arrayOfUsersIds) {
         if (!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined") {
-            res.status(418).send({"message": "Not a valid request."});
+            res.status(418).send({ "message": "Not a valid request." });
             return;
         }
-        andArr.push({"participants": {$in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])]}})
+        andArr.push({ "participants": { $in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])] } })
     }
-    andArr.push({"participants": {$size: req.query.arrayOfUsersIds.length}});
+    andArr.push({ "participants": { $size: req.query.arrayOfUsersIds.length } });
 
 
     ChatUserRelation
         .find(
-            {
-                $and: andArr
-            }
+        {
+            $and: andArr
+        }
         )
         .select('_id')
         .then((userData) => {
@@ -93,7 +94,7 @@ app.get('/chatIdForUsers', (req, res) => {
             if (userData[0]) {
                 res.json(userData[0]._id);
             } else {
-                res.status(418).send({"message": "No results found"});
+                res.status(418).send({ "message": "No results found" });
             }
         }).catch(console.log);
 });
@@ -110,7 +111,7 @@ app.get('/currentUserInfo', (req, res) => {
 app.get('/fullNamesByString', (req, res) => {
     let regexp = new RegExp(req.query.searchString, "gui");
     User
-        .find({fullName: {$regex: regexp}})
+        .find({ fullName: { $regex: regexp } })
         .select('fullName')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
@@ -126,47 +127,35 @@ app.get('/fullNamesByString', (req, res) => {
 
 app.get('/chatHistoryBrief', (req, res) => {
     ChatUserRelation
-        .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
+        .find({ $or: [{ creatorId: req.query.accessToken }, { participants: req.query.accessToken }] })
         .select('creatorId participants')
         .then((data) => {
-
-
             let result = JSON.parse(JSON.stringify(data));
-            let chat = [];
-            let v;
+            async.map(result, mapChats, function (err, chats) {
+                // console.log(chats)
+                res.json(chats);
+            })
 
-            for (v in result) {
-                result[v].id = result[v]._id;
-                result[v].isRoom = result[v].participants.length > 2;
-                // Simulated data
-                result[v].lastChatMessageText = 'Simulated last message';
-                result[v].lastChatDate = new Date(); // simulated last msg date
-                result[v].fullName = 'John Doe'; // Simulated username
-                result[v].avatar = false; // simulated avatar
-                result[v].isOnline = true; // simulate online
-                result[v].isFavourite = true; // simulate favourite user
-
-                chat.push(result[v]);
-
-
-                // ChatMessage
-                //     .findOne({'chatId': result[v]._id}).sort({'date': 'descending'}).then(function (message) {
-                //     result[v].lastChatMessageText = message.message;
-                //     result[v].lastChatDate = message.date;
-                //     result[v].userId = message.userId;
-                // })
-                //     .then(function () {
-                //     User
-                //         .findById(result[v].userId).then(function (userData) {
-                //         result[v].fullName = userData.fullName;
-                //         result[v].avatar = userData.avatar;
-                //         result[v].isOnline = true; // simulate online
-                //         result[v].isFavourite = true; // simulate favourite user
-                //         chat.push(result[v])
-                //     });
-                // });
+            function mapChats(chat, done) {
+                chat.id = chat._id;
+                chat.isRoom = chat.participants.length > 2;
+                ChatMessage
+                    .findOne({ 'chatId': chat._id }).sort({ 'date': 'descending' }).then(function (message) {
+                        chat.lastChatMessageText = message.message;
+                        chat.lastChatDate = message.date;
+                        chat.userId = message.userId;
+                    }).then(function () {
+                        User
+                            .findById(chat.userId).then(function (userData) {
+                                chat.fullName = userData.fullName;
+                                chat.avatar = userData.avatar;
+                                chat.isOnline = true; // simulate online
+                                chat.isFavourite = true; // simulate favourite user
+                            }).then(() => {
+                                done(null, chat);
+                            });
+                    });
             }
-            res.json(chat);
 
         }).catch(console.log);
 });
@@ -189,7 +178,7 @@ app.get('/getMessagesBySearchstring', (req, res) => {
 
 app.get('/chatHistory', (req, res) => {
     ChatMessage
-        .find({chatId: mongoose.Types.ObjectId(req.query.chatId)})
+        .find({ chatId: mongoose.Types.ObjectId(req.query.chatId) })
         .then((messages) => {
             let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
                 return {
@@ -213,7 +202,7 @@ app.get('/getMatchingUsername', (req, res) => {
         .find({})
         .select('_id username fullName avatar')
         .where('_id').ne(req.searchString)
-        .where('username').findOne({"username": {$regex: ".*son.*"}})
+        .where('username').findOne({ "username": { $regex: ".*son.*" } })
         .then((users) => {
             res.json(users);
         });
@@ -235,10 +224,10 @@ app.post('/login', (req, res) => {
     let reqUser = req.body;
     User.findOne(reqUser)
         .select('_id').then((user) => {
-        res.json({accessToken: user._id});
-    }).catch((err) => {
-        res.status(418).send('Invalid username and/or password');
-    });
+            res.json({ accessToken: user._id });
+        }).catch((err) => {
+            res.status(418).send('Invalid username and/or password');
+        });
 });
 
 app.post('/createChat', (req, res) => {
@@ -249,7 +238,7 @@ app.post('/createChat', (req, res) => {
         creatorId: creatorid,
         participants: participants
     }).save().then(function (response) {
-        res.json({"chatid": response._id});
+        res.json({ "chatid": response._id });
     });
 });
 
@@ -262,7 +251,7 @@ app.post('/createRoom', (req, res) => {
 
     new Room({
         name: roomName,
-        users: [{username: userName, fullName: fullName, id: userId}],
+        users: [{ username: userName, fullName: fullName, id: userId }],
         messages: []
     }).save((err, data) => {
         if (err) {
@@ -281,7 +270,7 @@ app.post('/favourite', (req, res) => {
             $push: {
                 "favourites": favUser
             }
-        }, {safe: true, new: true, upsert: true}, (err, user) => {
+        }, { safe: true, new: true, upsert: true }, (err, user) => {
             res.json(user.favourites);
         });
     }
@@ -290,7 +279,7 @@ app.post('/favourite', (req, res) => {
             $pull: {
                 "favourites": favUser
             }
-        }, {safe: true, new: true, upsert: true}, (err, user) => {
+        }, { safe: true, new: true, upsert: true }, (err, user) => {
             res.json(user.favourites);
         });
     }
@@ -334,7 +323,7 @@ io.sockets.on('connection', (socket) => {
 
 
 })
-;
+    ;
 
 
 http.listen(port, () => {
