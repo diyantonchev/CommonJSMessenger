@@ -19,6 +19,26 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     vm.socket = io.connect();
     vm.socket.emit('user connected',{accessToken : vm.accessToken})
 
+
+    vm.userSettings = readUserSettings();
+
+    function readUserSettings() {
+        let settings = localStorage.getItem('userSettings');
+        console.log('settings',settings);
+        if(!settings){
+            settings = {
+                enableNotifications : true
+            };
+            localStorage.setItem('settings',settings);
+        }
+        return settings;
+    }
+    function updateUserSetting(setting,value) {
+
+    }
+
+
+
     // Strings
     vm.autocompletePlaceholder = "Search all users";
 
