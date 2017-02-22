@@ -9,6 +9,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     vm.chatToggle = true;
 
 
+
     // Variables
     vm.accessToken = localStorage.getItem('accessToken');
     vm.currentUserInfo = {
