@@ -6,6 +6,9 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
 
     let vm = this;
 
+    vm.chatToggle = true;
+
+
     // Variables
     vm.accessToken = localStorage.getItem('accessToken');
     vm.currentUserInfo = {
@@ -13,6 +16,8 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         chatHistory: [],
         favourites: []
     };
+    vm.socket = io.connect();
+    vm.socket.emit('user connected',{accessToken : vm.accessToken})
 
     // Strings
     vm.autocompletePlaceholder = "Search all users";
@@ -70,12 +75,16 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     function openChatWindow(chatid) {
         let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`);
         if (!matches) {
-            let el = $compile(`<chat-window chatid="\'${chatid}\'"></chat-window>`)($scope);
+            let el = $compile(`<chat-window chatid="'${chatid}'"></chat-window>`)($scope);
             angular.element(document.querySelector('div.chat-container')).append(el);
         } else {
             angular.element(matches).focus();
         }
     }
+
+    vm.socket.on('new message notification',function (resp) {
+        notifierService.notifyMe(resp.userId+' send you a new message!');
+    });
 
 
     function panelsToggle() {
