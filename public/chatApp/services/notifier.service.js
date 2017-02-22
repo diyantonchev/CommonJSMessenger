@@ -35,6 +35,9 @@ function notifierService() {
                 }
             });
         }
+        if(notification){
+            setTimeout(notification.close.bind(notification), 1000);
+        }
     }
 
     function notificate(title, msg, data) {

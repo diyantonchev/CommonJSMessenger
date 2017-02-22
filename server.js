@@ -24,7 +24,7 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
@@ -127,43 +127,42 @@ app.get('/fullNamesByString', (req, res) => {
 
 app.get('/chatHistoryBrief', (req, res) => {
     ChatUserRelation
-        .find({ $or: [{ creatorId: req.query.accessToken }, { participants: req.query.accessToken }] })
+        .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
         .select('creatorId participants')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
             async.map(result, mapChats, function (err, chats) {
                 res.json(chats);
-            })
+            });
 
             function mapChats(chat, done) {
                 chat.id = chat._id;
                 chat.isRoom = chat.participants.length > 2;
-
                 let userIds = chat.participants.map((p) => {
                     return mongoose.Types.ObjectId(p);
                 });
-
                 ChatMessage
-                    .findOne({ 'chatId': chat._id }).sort({ 'date': 'descending' }).then(function (message) {
-                        chat.lastChatMessageText = message.message;
-                        chat.lastChatDate = message.date;
-                        chat.userId = message.userId;
-                    }).then(function () {
-                        User
-                            .find({ _id: { $in: userIds } }).then(function (userData) {
-                                chat.participants = [];
-                                for (v in userData) {
-                                    chat.participants.push({ id: userData[v]._id, fullName: userData[v].fullName });
-                                }
-                                
-                                chat.lastChatSender = chat.participants.filter((p) => {
-                                    return p.id.toString() === chat.userId.toString();
-                                })[0];
-
-                            }).then(() => {
-                                done(null, chat);
-                            });
+                    .findOne({'chatId': chat._id}).sort({'date': 'descending'}).then(function (message) {
+                    chat.lastChatMessageText = message.message;
+                    chat.lastChatDate = message.date;
+                    chat.userId = message.userId;
+                }).then(function () {
+                    User
+                        .find({_id: {$in: userIds}}).then(function (userData) {
+                        chat.participants = [];
+                        for (v in userData) {
+                            chat.participants.push({id: userData[v]._id, fullName: userData[v].fullName});
+                        }
+                        chat.lastChatSender = chat.participants.filter((p) => {
+                            return p.id.toString() === chat.userId.toString();
+                        })[0];
+                        console.log('ss');
+                    }).then(() => {
+                        done(function(err){
+                            console.log('chatHistoryBrief error:'+err);
+                        }, chat);
                     });
+                });
             }
 
         }).catch(console.log);
@@ -256,9 +255,9 @@ var onlineUsers = {};
 io.sockets.on('connection', (client) => {
 
 
-    client.on('user connected', function(data){
+    client.on('user connected', function (data) {
         onlineUsers[data.accessToken] = {
-            client : client
+            client: client
         };
 
         onlineUsers[data.accessToken].client.on('message', (data) => {
@@ -276,13 +275,11 @@ io.sockets.on('connection', (client) => {
                         .findById(mongoose.Types.ObjectId(data.chatid))
                         .select('participants')
                         .then(function (result) {
-                            for(let v in result.participants){
+                            for (let v in result.participants) {
                                 let participant = result.participants[v];
-                                if(!onlineUsers[participant].client) continue;
-
-                                console.log('new message for:',participant, 'in chat :',response.chatId);
-
+                                if (!onlineUsers[participant].client) continue;
                                 onlineUsers[participant].client.emit('new message', {
+
                                     messageid: response._id,
                                     chatId: response.chatId,
                                     date: response.date,
@@ -290,7 +287,7 @@ io.sockets.on('connection', (client) => {
                                     userId: response.userId,
                                 });
 
-                                if(participant != data.userid){
+                                if (participant != data.userid) {
                                     onlineUsers[participant].client.emit('new message notification', {
                                         chatId: response.chatId,
                                         message: response.message,
@@ -306,21 +303,15 @@ io.sockets.on('connection', (client) => {
         });
 
 
-
     });
-    client.on('disconnect', function(data){
-        for(let v in onlineUsers){
-            if(onlineUsers[v].client.id == client.id){
+    client.on('disconnect', function (data) {
+        for (let v in onlineUsers) {
+            if (onlineUsers[v].client.id == client.id) {
                 delete onlineUsers[v];
                 break;
             }
         }
     });
-
-
-
-
-
 
 
     // Server needs to be an ALL POSSIBLE ROOMS
@@ -333,7 +324,6 @@ io.sockets.on('connection', (client) => {
     //         }
     //     });
 });
-
 
 
 http.listen(port, () => {

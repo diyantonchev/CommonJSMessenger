@@ -9,6 +9,7 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     vm.chatid = $scope.chatid;
 
     vm.participants = [];
+    vm.messages = [];
     vm.chatHeader = '';
 
 
@@ -84,7 +85,6 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
             $scope.$apply();
             vm.scrollChatToBottom();
         }
-        alert('new message');
     });
 
 };
