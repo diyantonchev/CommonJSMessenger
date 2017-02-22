@@ -132,13 +132,17 @@ app.get('/chatHistoryBrief', (req, res) => {
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
             async.map(result, mapChats, function (err, chats) {
-                // console.log(chats)
                 res.json(chats);
             })
 
             function mapChats(chat, done) {
                 chat.id = chat._id;
                 chat.isRoom = chat.participants.length > 2;
+
+                let userIds = chat.participants.map((p) => {
+                    return mongoose.Types.ObjectId(p);
+                });
+
                 ChatMessage
                     .findOne({ 'chatId': chat._id }).sort({ 'date': 'descending' }).then(function (message) {
                         chat.lastChatMessageText = message.message;
@@ -146,11 +150,16 @@ app.get('/chatHistoryBrief', (req, res) => {
                         chat.userId = message.userId;
                     }).then(function () {
                         User
-                            .findById(chat.userId).then(function (userData) {
-                                chat.fullName = userData.fullName;
-                                chat.avatar = userData.avatar;
-                                chat.isOnline = true; // simulate online
-                                chat.isFavourite = true; // simulate favourite user
+                            .find({ _id: { $in: userIds } }).then(function (userData) {
+                                chat.participants = [];
+                                for (v in userData) {
+                                    chat.participants.push({ id: userData[v]._id, fullName: userData[v].fullName });
+                                }
+                                
+                                chat.lastChatSender = chat.participants.filter((p) => {
+                                    return p.id.toString() === chat.userId.toString();
+                                })[0];
+
                             }).then(() => {
                                 done(null, chat);
                             });

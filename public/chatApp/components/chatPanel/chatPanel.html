@@ -48,8 +48,10 @@
                             <md-icon>person</md-icon>
                         </div>
                         <div class="info" flex>
-                            <div class="fullName">{{chat.fullName}}</div>
-                            <div class="lastChatMessageText">{{chat.lastChatMessageText}}</div>
+                            <div class="fullName" ng-if="chat.participants.length > 2  && participant.id !== vm.accessToken">{{chat.participants[0].fullName}} (+{{chat.participants.length - 1}})</div>
+                            <div class="fullName" ng-repeat="participant in chat.participants"  ng-if="chat.participants.length <= 2 && participant.id !== vm.accessToken">{{participant.fullName}}</div>
+                            
+                            <div class="lastChatMessageText">{{chat.lastChatSender.fullName}}: {{chat.lastChatMessageText}}</div>
                             <div class="lastChatDate">{{chat.lastChatDate | date:'medium'}}</div>
                         </div>
 

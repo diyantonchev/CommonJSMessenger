@@ -68,7 +68,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     function openChatWindow(chatid) {
-        debugger;
         let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`);
         if (!matches) {
             let el = $compile(`<chat-window chatid="\'${chatid}\'"></chat-window>`)($scope);
