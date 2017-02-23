@@ -132,6 +132,7 @@ app.get('/chatHistoryBrief', (req, res) => {
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
             async.map(result, mapChats, function (err, chats) {
+                console.log(chats);
                 res.json(chats);
             });
 
@@ -146,6 +147,7 @@ app.get('/chatHistoryBrief', (req, res) => {
                     chat.lastChatMessageText = message.message;
                     chat.lastChatDate = message.date;
                     chat.userId = message.userId;
+
                 }).then(function () {
                     User
                         .find({_id: {$in: userIds}}).then(function (userData) {
@@ -157,9 +159,7 @@ app.get('/chatHistoryBrief', (req, res) => {
                             return p.id.toString() === chat.userId.toString();
                         })[0];
                     }).then(() => {
-                        done(function(err){
-                            console.log('chatHistoryBrief error:'+err);
-                        }, chat);
+                        done(null, chat);
                     });
                 });
             }
@@ -284,9 +284,8 @@ io.sockets.on('connection', (client) => {
                         .then(function (result) {
                             for (let v in result.participants) {
                                 let participant = result.participants[v];
-                                if (!onlineUsers[participant].client) continue;
+                                if (!onlineUsers[participant] || !onlineUsers[participant].client) continue;
                                 onlineUsers[participant].client.emit('new message', {
-
                                     messageid: response._id,
                                     chatId: response.chatId,
                                     date: response.date,
