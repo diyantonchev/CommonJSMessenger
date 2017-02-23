@@ -62,37 +62,8 @@
 
             </md-tab>
 
-
-
-
             <md-tab label="Rooms">
-                <md-toolbar layout="column" layout-align="center center">
-                    <div flex class="md-toolbar-tools" layout="row">
-                        <input type="text" ng-model="vm.createRoomName">
-                        <span flex></span>
-                        <md-button class="md-button md-accent md-raised" ng-click="vm.createRoom(vm.createRoomName)">
-                            Add Room
-                        </md-button>
-                    </div>
-                    <div flex class="md-toolbar-tools" layout="row">
-                        <input type="text" ng-model="vm.searchRoomName">
-                        <span flex></span>
-                        <ng-md-icon icon="search"></ng-md-icon>
-                    </div>
-                </md-toolbar>
-                <md-list flex>
-                    <md-list-item class="md-3-line" ng-repeat="room in vm.rooms | filter: vm.searchRoomName"
-                                  ng-click="vm.changeRoomInstance(room)">
-                        <div class="md-list-item-text" layout="row">
-                            <h3>{{room.name}}</h3>
-                            <span flex></span>
-                            <ng-md-icon icon="chat" ng-show="room.newText"></ng-md-icon>
-                        </div>
-                    </md-list-item>
-                </md-list>
             </md-tab>
-
-
 
             <md-tab label="Favourites">
                 <md-content flex layout-padding>
