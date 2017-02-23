@@ -90,7 +90,6 @@ app.get('/chatIdForUsers', (req, res) => {
         )
         .select('_id')
         .then((userData) => {
-            console.log('userData--->', userData);
             if (userData[0]) {
                 res.json(userData[0]._id);
             } else {
@@ -110,8 +109,10 @@ app.get('/currentUserInfo', (req, res) => {
 
 app.get('/fullNamesByString', (req, res) => {
     let regexp = new RegExp(req.query.searchString, "gui");
+    console.log('REQ QUERY', req.query)
     User
         .find({ fullName: { $regex: regexp } })
+        .where('_id').ne(req.query.userId)
         .select('fullName')
         .then((data) => {
             let result = JSON.parse(JSON.stringify(data));
@@ -197,17 +198,16 @@ app.get('/chatHistory', (req, res) => {
 });
 
 
-app.get('/getMatchingUsername', (req, res) => {
-    console.log('getMatchingUsername');
-    User
-        .find({})
-        .select('_id username fullName avatar')
-        .where('_id').ne(req.query.searchString)
-        .where('username').findOne({ "username": { $regex: ".*son.*" } })
-        .then((users) => {
-            res.json(users);
-        });
-});
+// app.get('/getMatchingUsername', (req, res) => {
+//     User
+//         .find({})
+//         .select('_id username fullName avatar')
+//         .where('_id').ne(req.query.searchString)
+//         .where('username').findOne({ "username": { $regex: ".*son.*" } })
+//         .then((users) => {
+//             res.json(users);
+//         });
+// });
 
 
 app.get('/users', (req, res) => {

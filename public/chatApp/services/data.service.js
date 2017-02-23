@@ -37,12 +37,12 @@ function dataService($http) {
     }
 
 
-    function getFullNamesByString(searchString){
+    function getFullNamesByString(userId, searchString){
         return $http({
             method: "GET",
             url: '/fullNamesByString',
             headers: { 'Content-Type': 'application/json' },
-            params: {searchString : searchString }
+            params: {userId, searchString }
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);

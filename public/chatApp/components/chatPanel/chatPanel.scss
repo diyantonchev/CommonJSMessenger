@@ -24,6 +24,14 @@ chat-panel {
     }
   }
 
+  .toolbar {
+    background-color: #505B72;
+
+    .search {
+       margin-left: 10px;
+    }
+  }
+
   ul.chatList {
     margin: 0;
     padding: 15px;

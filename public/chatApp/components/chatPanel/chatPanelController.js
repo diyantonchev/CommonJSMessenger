@@ -17,7 +17,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         favourites: []
     };
     vm.socket = io.connect();
-    vm.socket.emit('user connected', {accessToken: vm.accessToken})
+    vm.socket.emit('user connected', { accessToken: vm.accessToken })
 
 
     vm.userSettings = readUserSettings();
@@ -71,7 +71,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         let deferred = $q.defer();
         if (vm.usersByNameAutocompletePromise) $timeout.cancel(vm.usersByNameAutocompletePromise);
         vm.usersByNameAutocompletePromise = $timeout(function () {
-            dataService.getFullNamesByString(vm.searchText).then(function (data) {
+            dataService.getFullNamesByString(vm.accessToken, vm.searchText).then(function (data) {
                 deferred.resolve(data);
             });
         }, 500);
