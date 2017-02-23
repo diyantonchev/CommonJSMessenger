@@ -16,17 +16,42 @@ chat-window {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-
         padding: 5px 10px;
+      }
+      .searchContainer {
+          box-sizing: border-box;
+          font-size: 12px;
+          height: 0;
+          transition: all 500ms;
+          overflow: hidden;
+          margin: 0;
+          padding: 0 12px;
+          color: #262b36;
+          background-color: #FCFCFD;
+          border: 1px solid #bdc3d1;
+          &.enableSearch{
+            height: 30px;
+            border: 1px solid #bdc3d1;
+            padding: 10px 12px;
+          &:focus{
+            outline: none;
+            background-color: #fff;
+            border-color: #9fa8bc;
+          }
+        }
       }
     }
   }
 
   ul.messages {
+    transition: all 500ms;
     height: 336px;
     padding: 5px;
     margin: 0;
     overflow: auto;
+    &.enableSearch{
+      height: 306px;
+    }
     li {
       cursor: pointer;
       list-style: none;
@@ -61,64 +86,3 @@ chat-window {
   }
 
 }
-
-//chat-room {
-//  md-whiteframe {
-//    position: fixed;
-//    height: 600px;
-//    width: 600px;
-//    right: 400px;
-//    bottom: 0;
-//
-//    md-content {
-//      width: 100%;
-//      overflow-x: hidden;
-//      .chat-message {
-//        width: 100%;
-//        height: auto;
-//        padding: 12px 0;
-//        margin-right: 6px;
-//        display: flex;
-//        &.user{
-//          flex-direction: row-reverse;
-//          .msg{
-//            background-color: royalblue;
-//            color: white;
-//            border-bottom-left-radius: 12px;
-//            border-top-left-radius: 12px;
-//          }
-//        }
-//        &.friend{
-//          flex-direction: row;
-//          .msg{
-//            background-color: lightgray;
-//            color: #222;
-//            border-bottom-right-radius: 12px;
-//            border-top-right-radius: 12px;
-//          }
-//        }
-//        .chat-message-wrapper{
-//          display: flex;
-//          width: 60%;
-//          flex-direction: column;
-//          div{
-//            padding: 5px 8px 4px;
-//            &.msg{
-//              word-wrap: break-word;
-//            }
-//          }
-//        }
-//        .msg-img{
-//          width: 100%;
-//          height: auto;
-//        }
-//      }
-//    }
-//    .input-toolbar {
-//      .input-area {
-//        resize: none;
-//        height: 80px;
-//      }
-//    }
-//  }
-//}
