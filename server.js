@@ -133,6 +133,7 @@ app.get('/chatHistoryBrief', (req, res) => {
                     ]
                 }
             }
+
             ,
             {
                 $lookup: {
@@ -149,24 +150,41 @@ app.get('/chatHistoryBrief', (req, res) => {
                     foreignField: "_id",
                     as: "Users"
                 }
-            }
-
+            },
+            {
+                $sort:{ date : 1 }
+            },
         ]).then(function (data) {
 
         let result = [];
-        let chat;
+        let chat, lastMessageInfo;
         for (let v in data) {
             chat = data[v];
+            lastMessageInfo = chat.ChatMessages[chat.ChatMessages.length - 1];
             result.push({
                 id: chat._id,
                 isRoom: chat.participants.length > 2,
                 userId: chat.creatorId,
-                participants: chat.participants
+                participants: chat.participants.map(function(part){
+                    return getUserById(chat.Users,part).fullName
+                }),
+                lastChatDate : lastMessageInfo.date,
+                lastChatMessageText : lastMessageInfo.message,
+                lastChatSender : {
+                    fullName: getUserById(chat.Users,lastMessageInfo.userId).fullName
+                }
             })
         }
         res.json(result);
     });
 });
+
+function getUserById(usersArray,userId){
+    for(let v in usersArray){
+        if(usersArray[v]._id+'' == userId+'') return usersArray[v];
+    }
+    return false;
+}
 
 app.get('/messagesBySearchstring', (req, res) => {
     let chatId = req.query.chatId;
