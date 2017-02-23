@@ -24,7 +24,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
 
     function readUserSettings() {
         let settings = localStorage.getItem('userSettings');
-        console.log('settings', settings);
         if (!settings) {
             settings = {
                 enableNotifications: true
@@ -63,7 +62,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     function updateChatHistory() {
-        console.log('updating Chat history');
         chatService.getChatHistoryBrief().then(function (data) {
             vm.currentUserInfo.chatHistory = data;
         });

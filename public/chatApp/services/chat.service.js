@@ -9,7 +9,8 @@ function chatService($http) {
         createChat: createChat, // open chat window with given chatID
         getChatIdForUsers: getChatIdForUsers, // open chat window with given chatID
         getChatHistoryBrief: getChatHistoryBrief, // open chat window with given user ID (search in DB for existing chat session with selected user ONLY)
-        getChatHistory: getChatHistory
+        getChatHistory: getChatHistory,
+        getMessagesBySearchstring: getMessagesBySearchstring
     };
 
     return service;
@@ -40,12 +41,12 @@ function chatService($http) {
         }).catch(console.err);
     }
 
-    function getChatHistoryBrief(){
+    function getChatHistoryBrief() {
         return $http({
             method: "GET",
             url: '/chatHistoryBrief',
             headers: { 'Content-Type': 'application/json' },
-            params: {accessToken : localStorage.getItem('accessToken')}
+            params: { accessToken: localStorage.getItem('accessToken') }
         }).then((response) => {
             return response.data;
         }).catch(err => console.err);
@@ -56,9 +57,20 @@ function chatService($http) {
             method: "GET",
             url: '/chatIdForUsers',
             headers: { 'Content-Type': 'application/json' },
-            params: {arrayOfUsersIds}
+            params: { arrayOfUsersIds }
         }).then((response) => {
-            console.log('chatService getChatIdForUsers',response);
+            console.log('chatService getChatIdForUsers', response);
+            return response.data;
+        }).catch(err => console.err);
+    }
+
+    function getMessagesBySearchstring(chatId, searchedString) {
+        return $http({
+            method: "GET",
+            url: '/messagesBySearchstring',
+            headers: { 'Content-Type': 'application/json' },
+            params: { chatId, searchedString }
+        }).then((response) => {
             return response.data;
         }).catch(err => console.err);
     }

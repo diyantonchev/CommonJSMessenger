@@ -24,6 +24,8 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     vm.ownId = localStorage.getItem('accessToken');
     vm.chatTitle = 'Chat name';
     vm.isDisplayingSearchResult = false;
+    vm.enableSearch = false;
+    vm.searchedMessage = '';
 
     onInit();
 
@@ -33,15 +35,7 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
         // if we don't have chat id we need to retreive it based
         // on the userId we are trying to chat to
         if (vm.chatid) {
-            chatService.getChatHistory(vm.chatid)
-                .then((messages) => {
-                console.log('getChatHistory');
-                    vm.chatHeader = vm.chatid;
-                    vm.messages = messages;
-                    vm.participants = messages;
-                    vm.scrollChatToBottom();
-                    vm.focusInput();
-                });
+            getChatHistory();
         } else {
             if ($scope.participants) {
                 vm.participants = $scope.participants.split(',');
@@ -57,26 +51,35 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     }
 
 
-    function getMessagesBySearchstring(string) {
-
-        /**
-         * Criteria:
-         * min 3 chars
-         * wait 500ms before exec (see user's search)
-          * @type {[*]}
-         */
-        vm.messages = [
-            {
-                message: 'result containing the string'
-            }
-        ]
-        vm.isDisplayingSearchResult = true;
+    function getChatHistory() {
+        chatService.getChatHistory(vm.chatid)
+            .then((messages) => {
+                vm.chatHeader = vm.chatid;
+                vm.messages = messages;
+                vm.participants = messages;
+                vm.scrollChatToBottom();
+                vm.focusInput();
+            });
     }
 
+    function getMessagesBySearchstring() {
+        if (vm.searchedMessage.length >= 3) {
+            vm.isDisplayingSearchResult = true;
+            if (vm.searchedMessagePromise) $timeout.cancel(vm.searchedMessagePromise);
+            vm.searchedMessagePromise = $timeout(function () {
+                chatService.getMessagesBySearchstring(vm.chatid, vm.searchedMessage).then((messages) => {
+                    vm.messages = messages;
+                })
+            }, 500);
+        } else if (vm.isDisplayingSearchResult) {
+            vm.isDisplayingSearchResult = false;
+            getChatHistory();
+        }
+    }
 
     function sendMessage(event) {
         if (event.keyCode == 13 && vm.userMessage) {
-            $scope.$parent.vm.socket.emit('message', {message: vm.userMessage, chatid: vm.chatid, userid: localStorage.getItem('accessToken')});
+            $scope.$parent.vm.socket.emit('message', { message: vm.userMessage, chatid: vm.chatid, userid: localStorage.getItem('accessToken') });
         }
     }
 

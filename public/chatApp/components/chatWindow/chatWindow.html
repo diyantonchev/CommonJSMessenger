@@ -1,10 +1,17 @@
 <div layout="column" layout-align="space-between stretch">
-    <section class="header" layout="row" layout-align="center center">
-        <h2 flex title="{{vm.chatHeader}}">{{vm.chatHeader}}</h2>
-        <md-button class="md-icon-button" ng-click="vm.getMessagesBySearchstring()"><md-icon>search</md-icon></md-button>
-        <md-button class="md-icon-button md-accent" ng-click="vm.destroyChatWindow()"><md-icon>clear</md-icon></md-button>
+    <section class="header" layout="column">
+        <div layout="row" layout-align="center center">
+            <h2 flex title="{{vm.chatHeader}}">{{vm.chatHeader}}</h2>
+            <md-button class="md-icon-button" ng-click="vm.enableSearch = !vm.enableSearch">
+                <md-icon>search</md-icon>
+            </md-button>
+            <md-button class="md-icon-button md-accent" ng-click="vm.destroyChatWindow()">
+                <md-icon>clear</md-icon>
+            </md-button>
+        </div>
+        <input type="text" ng-class="{enableSearch: vm.enableSearch}"  ng-model="vm.searchedMessage" ng-keyup="vm.getMessagesBySearchstring()" class="searchContainer" placeholder="Search messages">
     </section>
-    <ul flex class="messages">
+    <ul flex ng-class="{enableSearch: vm.enableSearch}" class="messages">
         <li title="{{message.date | date:'medium'}}" ng-class="{ownMessage : message.userid === vm.ownId}" ng-repeat="message in vm.messages">
             <div>{{message.message}}</div>
         </li>
