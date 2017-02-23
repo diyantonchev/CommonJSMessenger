@@ -156,7 +156,6 @@ app.get('/chatHistoryBrief', (req, res) => {
                         chat.lastChatSender = chat.participants.filter((p) => {
                             return p.id.toString() === chat.userId.toString();
                         })[0];
-                        console.log('ss');
                     }).then(() => {
                         done(function(err){
                             console.log('chatHistoryBrief error:'+err);
@@ -250,7 +249,13 @@ app.post('/createChat', (req, res) => {
     });
 });
 
-
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
 var onlineUsers = {};
 io.sockets.on('connection', (client) => {
 
@@ -259,6 +264,8 @@ io.sockets.on('connection', (client) => {
         onlineUsers[data.accessToken] = {
             client: client
         };
+        console.log(data.accessToken+' connected','total online ('+Object.size(onlineUsers)+')');
+
 
         onlineUsers[data.accessToken].client.on('message', (data) => {
             //Insert into DB
@@ -311,6 +318,7 @@ io.sockets.on('connection', (client) => {
                 break;
             }
         }
+        console.log(data.accessToken,'connected',client.id+' went offline ('+Object.size(onlineUsers)+')');
     });
 
 
