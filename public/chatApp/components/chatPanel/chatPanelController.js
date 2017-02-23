@@ -1,13 +1,12 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService','chatService', 'socketComunicationService', 'notifierService'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService', 'chatService', 'socketComunicationService', 'notifierService'];
 
 function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService, socketComunicationService, notifierService) {
 
     let vm = this;
 
     vm.chatToggle = true;
-
 
 
     // Variables
@@ -18,26 +17,26 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         favourites: []
     };
     vm.socket = io.connect();
-    vm.socket.emit('user connected',{accessToken : vm.accessToken})
+    vm.socket.emit('user connected', {accessToken: vm.accessToken})
 
 
     vm.userSettings = readUserSettings();
 
     function readUserSettings() {
         let settings = localStorage.getItem('userSettings');
-        console.log('settings',settings);
-        if(!settings){
+        console.log('settings', settings);
+        if (!settings) {
             settings = {
-                enableNotifications : true
+                enableNotifications: true
             };
-            localStorage.setItem('settings',settings);
+            localStorage.setItem('settings', settings);
         }
         return settings;
     }
-    function updateUserSetting(setting,value) {
+
+    function updateUserSetting(setting, value) {
 
     }
-
 
 
     // Strings
@@ -49,6 +48,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     vm.createNewChatWindow = createNewChatWindow;
     vm.openChatWindow = openChatWindow;
     vm.panelsToggle = panelsToggle;
+    vm.updateChatHistory = updateChatHistory;
 
     onInit();
 
@@ -59,6 +59,11 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         });
 
         // Collecting currentUser chat History
+        vm.updateChatHistory();
+    }
+
+    function updateChatHistory() {
+        console.log('updating Chat history');
         chatService.getChatHistoryBrief().then(function (data) {
             vm.currentUserInfo.chatHistory = data;
         });
@@ -76,7 +81,7 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     function onAutocompleteSelect(userId) {
-        if(userId){
+        if (userId) {
             chatService.getChatIdForUsers([vm.accessToken, userId]).then(function (chatId) {
                 // check if there was previous chat with this user
                 if (chatId) {
@@ -103,8 +108,9 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         }
     }
 
-    vm.socket.on('new message notification',function (resp) {
-        notifierService.notifyMe(resp.userId+' send you a new message!');
+    vm.socket.on('new message notification', function (resp) {
+        notifierService.notifyMe(resp.userId + ' send you a new message!');
+        vm.updateChatHistory();
     });
 
 
