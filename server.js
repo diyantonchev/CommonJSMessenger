@@ -7,8 +7,6 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const async = require('async');
-// const routes = require('./server/routes');
 
 require('./server/models/user.model');
 require('./server/models/chatUserRelation.model');
@@ -24,13 +22,13 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
 console.log('MongoDB up and running!');
-// INSERTING VALUESSSSS
 
+// INSERTING VALUESSSSS
 app.get('/fillChats', (req, res) => {
 
     // qwerty   =   589dbe874a1dad6d2e933fce
@@ -74,26 +72,26 @@ app.get('/chatIdForUsers', (req, res) => {
 
     for (let v in req.query.arrayOfUsersIds) {
         if (!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined") {
-            res.status(418).send({ "message": "Not a valid request." });
+            res.status(418).send({"message": "Not a valid request."});
             return;
         }
-        andArr.push({ "participants": { $in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])] } })
+        andArr.push({"participants": {$in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])]}})
     }
-    andArr.push({ "participants": { $size: req.query.arrayOfUsersIds.length } });
+    andArr.push({"participants": {$size: req.query.arrayOfUsersIds.length}});
 
 
     ChatUserRelation
         .find(
-        {
-            $and: andArr
-        }
+            {
+                $and: andArr
+            }
         )
         .select('_id')
         .then((userData) => {
             if (userData[0]) {
                 res.json(userData[0]._id);
             } else {
-                res.status(418).send({ "message": "No results found" });
+                res.status(418).send({"message": "No results found"});
             }
         }).catch(console.log);
 });
@@ -128,50 +126,55 @@ app.get('/fullNamesByString', (req, res) => {
 
 app.get('/chatHistoryBrief', (req, res) => {
     ChatUserRelation
-        .find({ $or: [{ creatorId: req.query.accessToken }, { participants: req.query.accessToken }] })
-        .select('creatorId participants')
-        .then((data) => {
-            let result = JSON.parse(JSON.stringify(data));
-            async.map(result, mapChats, function (err, chats) {
-                res.json(chats);
-            });
-
-            function mapChats(chat, done) {
-                chat.id = chat._id;
-                chat.isRoom = chat.participants.length > 2;
-                let userIds = chat.participants.map((p) => {
-                    return mongoose.Types.ObjectId(p);
-                });
-                ChatMessage
-                    .findOne({ 'chatId': chat._id }).sort({ 'date': 'descending' }).then(function (message) {
-                        chat.lastChatMessageText = message.message;
-                        chat.lastChatDate = message.date;
-                        chat.userId = message.userId;
-
-                    }).then(function () {
-                        User
-                            .find({ _id: { $in: userIds } }).then(function (userData) {
-                                chat.participants = [];
-                                for (v in userData) {
-                                    chat.participants.push({ id: userData[v]._id, fullName: userData[v].fullName });
-                                }
-                                chat.lastChatSender = chat.participants.filter((p) => {
-                                    return p.id.toString() === chat.userId.toString();
-                                })[0];
-                            }).then(() => {
-                                done(null, chat);
-                            });
-                    });
+        .aggregate([
+            {
+                $match: {
+                    $or: [
+                        {creatorId: mongoose.Types.ObjectId(req.query.accessToken)},
+                        {participants: mongoose.Types.ObjectId(req.query.accessToken)}
+                    ]
+                }
+            }
+            ,
+            {
+                $lookup: {
+                    from: "chatmessages",
+                    localField: "_id",
+                    foreignField: "chatId",
+                    as: "ChatMessages"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "participants",
+                    foreignField: "_id",
+                    as: "Users"
+                }
             }
 
-        }).catch(console.log);
+        ]).then(function (data) {
+
+        let result = [];
+        let chat;
+        for (let v in data) {
+            chat = data[v];
+            result.push({
+                id: chat._id,
+                isRoom: chat.participants.length > 2,
+                userId: chat.creatorId,
+                participants: chat.participants
+            })
+        }
+        res.json(result);
+    });
 });
 
 app.get('/messagesBySearchstring', (req, res) => {
     let chatId = req.query.chatId;
     let regexp = new RegExp(req.query.searchedString, "gui");
     ChatMessage
-        .find({ chatId: mongoose.Types.ObjectId(chatId), message: { $regex: regexp } })
+        .find({chatId: mongoose.Types.ObjectId(chatId), message: {$regex: regexp}})
         .then((messages) => {
             res.json(messages);
         })
@@ -180,7 +183,7 @@ app.get('/messagesBySearchstring', (req, res) => {
 
 app.get('/chatHistory', (req, res) => {
     ChatMessage
-        .find({ chatId: mongoose.Types.ObjectId(req.query.chatId) })
+        .find({chatId: mongoose.Types.ObjectId(req.query.chatId)})
         .then((messages) => {
             let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
                 return {
@@ -197,7 +200,6 @@ app.get('/chatHistory', (req, res) => {
         });
 });
 
-
 // app.get('/getMatchingUsername', (req, res) => {
 //     User
 //         .find({})
@@ -207,7 +209,7 @@ app.get('/chatHistory', (req, res) => {
 //         .then((users) => {
 //             res.json(users);
 //         });
-// });
+// })
 
 
 app.get('/users', (req, res) => {
@@ -225,10 +227,10 @@ app.post('/login', (req, res) => {
     let reqUser = req.body;
     User.findOne(reqUser)
         .select('_id').then((user) => {
-            res.json({ accessToken: user._id });
-        }).catch((err) => {
-            res.status(418).send('Invalid username and/or password');
-        });
+        res.json({accessToken: user._id});
+    }).catch((err) => {
+        res.status(418).send('Invalid username and/or password');
+    });
 });
 
 app.post('/createChat', (req, res) => {
@@ -239,7 +241,7 @@ app.post('/createChat', (req, res) => {
         creatorId: creatorid,
         participants: participants
     }).save().then(function (response) {
-        res.json({ "chatid": response._id });
+        res.json({"chatid": response._id});
     });
 });
 
@@ -278,8 +280,9 @@ io.sockets.on('connection', (client) => {
                         .then(function (result) {
                             for (let v in result.participants) {
                                 let participant = result.participants[v];
-                                if (!onlineUsers[participant] || !onlineUsers[participant].client) continue;
+                                if (!onlineUsers[participant].client) continue;
                                 onlineUsers[participant].client.emit('new message', {
+
                                     messageid: response._id,
                                     chatId: response.chatId,
                                     date: response.date,
@@ -311,7 +314,7 @@ io.sockets.on('connection', (client) => {
                 break;
             }
         }
-        console.log(data.accessToken, 'connected', client.id + ' went offline (' + Object.size(onlineUsers) + ')');
+        console.log(client.id + ' went offline (' + Object.size(onlineUsers) + ')');
     });
 
 
