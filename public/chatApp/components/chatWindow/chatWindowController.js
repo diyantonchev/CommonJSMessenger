@@ -16,12 +16,14 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     vm.destroyChatWindow = destroyChatWindow;
     vm.scrollChatToBottom = scrollChatToBottom;
     vm.focusInput = focusInput;
+    vm.getMessagesBySearchstring = getMessagesBySearchstring;
 
 
     vm.sendMessage = sendMessage;
 
     vm.ownId = localStorage.getItem('accessToken');
     vm.chatTitle = 'Chat name';
+    vm.isDisplayingSearchResult = false;
 
     onInit();
 
@@ -33,7 +35,7 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
         if (vm.chatid) {
             chatService.getChatHistory(vm.chatid)
                 .then((messages) => {
-                console.log(messages);
+                console.log('getChatHistory');
                     vm.chatHeader = vm.chatid;
                     vm.messages = messages;
                     vm.participants = messages;
@@ -52,6 +54,23 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
                     });
             }
         }
+    }
+
+
+    function getMessagesBySearchstring(string) {
+
+        /**
+         * Criteria:
+         * min 3 chars
+         * wait 500ms before exec (see user's search)
+          * @type {[*]}
+         */
+        vm.messages = [
+            {
+                message: 'result containing the string'
+            }
+        ]
+        vm.isDisplayingSearchResult = true;
     }
 
 
