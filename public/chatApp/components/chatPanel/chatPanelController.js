@@ -9,7 +9,8 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     vm.chatToggle = true;
 
 
-    // Variables
+
+// Variables
     vm.accessToken = localStorage.getItem('accessToken');
     vm.currentUserInfo = {
         fullName: '',
@@ -17,36 +18,39 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         favourites: []
     };
     vm.socket = io.connect();
-    vm.socket.emit('user connected', { accessToken: vm.accessToken })
+    vm.socket.emit('user connected', {accessToken: vm.accessToken})
 
 
     vm.userSettings = readUserSettings();
 
     function readUserSettings() {
-        let settings = localStorage.getItem('userSettings');
-        if (!settings) {
-            settings = {
+        vm.userSettings = JSON.parse(localStorage.getItem('userSettings'));
+        console.log('readUserSettings', vm.userSettings);
+        if (!vm.userSettings) {
+            vm.userSettings = {
                 enableNotifications: true
             };
-            localStorage.setItem('settings', settings);
+            saveUserSettings();
         }
-        return settings;
+        return vm.userSettings;
     }
 
-    function updateUserSetting(setting, value) {
-
+    function saveUserSettings() {
+        $timeout(function(){
+            localStorage.setItem('userSettings', JSON.stringify(vm.userSettings));
+        },100)
     }
 
-
-    // Strings
+// Strings
     vm.autocompletePlaceholder = "Search all users";
 
-    //Functions
+//Functions
     vm.getFullNamesByString = getFullNamesByString;
     vm.onAutocompleteSelect = onAutocompleteSelect;
     vm.openChatWindow = openChatWindow;
     vm.panelsToggle = panelsToggle;
     vm.updateChatHistory = updateChatHistory;
+    vm.saveUserSettings = saveUserSettings;
 
     onInit();
 
@@ -107,12 +111,16 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     vm.socket.on('new message notification', function (resp) {
-        notifierService.notifyMe(resp.userId + ' send you a new message!');
+        if (vm.userSettings.enableNotification) {
+            notifierService.notifyMe(resp.userId + ' send you a new message!');
+        }
         vm.updateChatHistory();
+        window.focus();
     });
 
 
     function panelsToggle() {
         vm.chatToggle = !vm.chatToggle;
     }
-};
+}
+;

@@ -44,16 +44,13 @@
 
                 <ul class="chatList">
                     <li class="noselect" ng-click="vm.openChatWindow(chat.id)" ng-repeat="chat in vm.currentUserInfo.chatHistory track by $index" layout="row">
-                        <md-tooltip>{{chat.id}}</md-tooltip>
                         <div class="avatar" layout="row"  layout-align="center center">
-                            <md-icon>person</md-icon>
+                            <md-icon>{{chat.participants.length <= 2 ? 'person': 'group_add'}}</md-icon>
                         </div>
 
                         <div class="info" flex>
                             <div class="fullName">{{chat.participants[0] == vm.currentUserInfo.fullName ? chat.participants[1] : chat.participants[0]}}<span ng-if="chat.participants.length > 2">(+{{chat.participants.length - 1}})</span></div>
-
                             <div class="fullName" ng-repeat="participant in chat.participants"  ng-if="chat.participants.length <= 2 && participant.id !== vm.accessToken">{{participant.fullName}}</div>
-
                             <div class="lastChatMessageText">{{chat.lastChatSender.fullName}}: {{chat.lastChatMessageText}}</div>
                             <div class="lastChatDate">{{chat.lastChatDate | date:'medium'}}</div>
                         </div>
@@ -65,7 +62,7 @@
             
             <md-tab label="Settings">
                 <md-content flex layout-padding>
-                    <md-switch ng-model="vm.userSettings.enableNotifications" aria-label="Switch 2" ng-true-value="'yup'" ng-false-value="'nope'" class="md-warn">
+                    <md-switch ng-model="vm.userSettings.enableNotifications" ng-click="vm.saveUserSettings()" aria-label="Switch 2" class="md-warn">
                         <span flex>Rich Notfcatons</span>
                     </md-switch>
                 </md-content>
