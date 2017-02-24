@@ -76,7 +76,7 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
 
     function sendMessage(event) {
         if (event.keyCode == 13 && vm.userMessage) {
-            $scope.$parent.vm.socket.emit('message', { message: vm.userMessage, chatid: vm.chatid, userid: localStorage.getItem('accessToken') });
+            $scope.$parent.vm.socket.emit('message', { message: vm.userMessage, chatid: vm.chatid, userid: vm.ownId });
         }
     }
 

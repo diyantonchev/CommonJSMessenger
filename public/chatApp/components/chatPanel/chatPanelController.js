@@ -44,7 +44,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     //Functions
     vm.getFullNamesByString = getFullNamesByString;
     vm.onAutocompleteSelect = onAutocompleteSelect;
-    vm.createNewChatWindow = createNewChatWindow;
     vm.openChatWindow = openChatWindow;
     vm.panelsToggle = panelsToggle;
     vm.updateChatHistory = updateChatHistory;
@@ -55,15 +54,18 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         // Collecting currentUser info (AJAX)
         dataService.getCurrentUserInfo().then(function (data) {
             vm.currentUserInfo.fullName = data.fullName;
+            console.log("FULL NAME", vm.currentUserInfo.fullName);
+            updateChatHistory();
         });
 
         // Collecting currentUser chat History
-        vm.updateChatHistory();
+        //  vm.updateChatHistory();
     }
 
     function updateChatHistory() {
         chatService.getChatHistoryBrief().then(function (data) {
             vm.currentUserInfo.chatHistory = data;
+            console.log("CHAT HISTORY", vm.currentUserInfo.chatHistory);
         });
     }
 
@@ -81,29 +83,27 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     function onAutocompleteSelect(userId) {
         if (userId) {
             chatService.getChatIdForUsers([vm.accessToken, userId]).then(function (chatId) {
-                // check if there was previous chat with this user
-                if (chatId) {
-                    vm.openChatWindow(chatId);
-                } else {
-                    vm.createNewChatWindow([vm.accessToken, userId]);
-                }
+                vm.openChatWindow(chatId);
+                updateChatHistory()
             });
         }
     }
 
-    function createNewChatWindow(participants) {
-        let el = $compile(`<chat-window></chat-window>`)($scope);
-        angular.element(document.querySelector('div.chat-container')).append(el);
-    }
 
     function openChatWindow(chatid) {
-        let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`);
-        if (!matches) {
-            let el = $compile(`<chat-window chatid="'${chatid}'" userownname="'${vm.currentUserInfo.fullName}'"></chat-window>`)($scope);
-            angular.element(document.querySelector('div.chat-container')).append(el);
-        } else {
+        let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text].messageInput`);
+        if(matches){
             angular.element(matches).focus();
         }
+        else{
+            let el = $compile(`<chat-window chatid="'${chatid}'" userownname="'${vm.currentUserInfo.fullName}'"></chat-window>`)($scope);
+            angular.element(document.querySelector('div.chat-container')).append(el)
+            $timeout(function(){
+                matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text].messageInput`);
+                angular.element(matches).focus();
+            },100);
+        } 
+
     }
 
     vm.socket.on('new message notification', function (resp) {

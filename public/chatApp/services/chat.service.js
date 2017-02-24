@@ -15,13 +15,12 @@ function chatService($http) {
 
     return service;
 
-    function createChat(participants) {
-        console.log('createChat--->', participants);
+    function createChat(creatorid, participants) {
         return $http({
             method: 'POST',
             url: '/createChat',
             headers: { 'Content-Type': 'application/json' },
-            data: { participants }
+            data: { creatorid, participants }
         }).then((response) => {
             return response.data;
         }).catch(console.err);
@@ -59,7 +58,6 @@ function chatService($http) {
             headers: { 'Content-Type': 'application/json' },
             params: { arrayOfUsersIds }
         }).then((response) => {
-            console.log('chatService getChatIdForUsers', response);
             return response.data;
         }).catch(err => console.err);
     }

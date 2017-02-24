@@ -69,8 +69,8 @@ app.get('/fillChats', (req, res) => {
 app.get('/chatIdForUsers', (req, res) => {
     let inArr = [];
     let andArr = [];
-
-    for (let v in req.query.arrayOfUsersIds) {
+    
+     for (let v in req.query.arrayOfUsersIds) {
         if (!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined") {
             res.status(418).send({ "message": "Not a valid request." });
             return;
@@ -78,9 +78,9 @@ app.get('/chatIdForUsers', (req, res) => {
         andArr.push({ "participants": { $in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])] } })
     }
     andArr.push({ "participants": { $size: req.query.arrayOfUsersIds.length } });
-
-
-    ChatUserRelation
+    
+    
+       ChatUserRelation
         .find(
         {
             $and: andArr
@@ -91,7 +91,17 @@ app.get('/chatIdForUsers', (req, res) => {
             if (userData[0]) {
                 res.json(userData[0]._id);
             } else {
-                res.status(418).send({ "message": "No results found" });
+                let creatorid = mongoose.Types.ObjectId(req.query.arrayOfUsersIds[0]);
+                let participants = req.query.arrayOfUsersIds.map((id) => {
+                    return mongoose.Types.ObjectId(id);
+                })
+
+                new ChatUserRelation({
+                    creatorId: creatorid,
+                    participants: participants
+                }).save().then(function (response) {
+                    res.json(response._id);
+                }).catch(console.log);
             }
         }).catch(console.log);
 });
@@ -107,7 +117,6 @@ app.get('/currentUserInfo', (req, res) => {
 
 app.get('/fullNamesByString', (req, res) => {
     let regexp = new RegExp(req.query.searchString, "gui");
-    console.log('REQ QUERY', req.query)
     User
         .find({ fullName: { $regex: regexp } })
         .where('_id').ne(req.query.userId)
@@ -125,6 +134,8 @@ app.get('/fullNamesByString', (req, res) => {
 
 
 app.get('/chatHistoryBrief', (req, res) => {
+    console.log('CHAT HISTORY BRIEF')
+    console.log(req.query)
     ChatUserRelation
         .aggregate([
             {
@@ -155,7 +166,7 @@ app.get('/chatHistoryBrief', (req, res) => {
                 $sort: { date: 1 }
             },
         ]).then(function (data) {
-
+            console.log("DATA",data)
             let result = [];
             let chat, lastMessageInfo;
             for (let v in data) {
@@ -176,7 +187,7 @@ app.get('/chatHistoryBrief', (req, res) => {
                 })
             }
             res.json(result);
-        });
+        }).catch(console.log);
 });
 
 function getUserById(usersArray, userId) {
@@ -212,33 +223,32 @@ app.get('/chatHistory', (req, res) => {
                 $sort: { date: 1 }
             },
         ]).then(function (data) {
-            console.log('data: ',data[0].ChatMessages);
             let allUsers = data[0].Users;
 
 
 
             let result = {
-                participants : data[0].participants.map((party)=>{
-                    return getUserById(allUsers,party).fullName
+                participants: data[0].participants.map((party) => {
+                    return getUserById(allUsers, party).fullName
                 }),
-                messages : []
+                messages: []
             };
-            
+
             for (let v in data[0].ChatMessages) {
                 message = data[0].ChatMessages[v];
                 // console.log(message);
                 result.messages.push({
                     messageid: message._id,
-                    authorName: getUserById(allUsers,message.userId).fullName,
+                    authorName: getUserById(allUsers, message.userId).fullName,
                     userid: message.userId,
                     date: message.date,
-                    message:message.message,
+                    message: message.message,
                     messageType: 1 // TODO
                 })
             }
             console.log(result);
             res.json(result);
-        });
+        }).catch(console.log);
 
 
 });
@@ -356,15 +366,17 @@ app.post('/login', (req, res) => {
 });
 
 app.post('/createChat', (req, res) => {
-    let creatorid = req.body.participants[0];
-    let participants = req.body.participants;
+    let creatorid = mongoose.Types.ObjectId(req.body.creatorid);
+    let participants = req.body.participants.map((id) => {
+        return mongoose.Types.ObjectId(id);
+    })
 
-    ChatUserRelation({
+    new ChatUserRelation({
         creatorId: creatorid,
         participants: participants
     }).save().then(function (response) {
-        res.json({ "chatid": response._id });
-    });
+        res.json(response._id);
+    }).catch(console.log);
 });
 
 Object.size = function (obj) {
@@ -409,7 +421,7 @@ io.sockets.on('connection', (client) => {
                                     chatId: response.chatId,
                                     date: response.date,
                                     message: response.message,
-                                    userId: response.userId,
+                                    userid: response.userId,
                                 });
 
                                 if (participant != data.userid) {

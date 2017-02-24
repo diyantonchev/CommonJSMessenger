@@ -12,11 +12,13 @@
         <input type="text" ng-class="{enableSearch: vm.enableSearch}"  ng-model="vm.searchedMessage" ng-keyup="vm.getMessagesBySearchstring()" class="searchContainer" placeholder="Search messages">
     </section>
     <ul flex ng-class="{enableSearch: vm.enableSearch}" class="messages">
+        
         <li title="{{message.date | date:'medium'}}" ng-class="{ownMessage : message.userid === vm.ownId}" ng-repeat="message in vm.messages">
+            
             <div>{{message.message}}</div>
         </li>
     </ul>
     <div class="user-input">
-        <input ng-model="vm.userMessage" ng-keypress="vm.sendMessage($event)" placeholder="Enter your message..." type="text" />
+        <input class="messageInput" ng-model="vm.userMessage" ng-keypress="vm.sendMessage($event)" placeholder="Enter your message..." type="text" />
     </div>
 </div>
