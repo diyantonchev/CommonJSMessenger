@@ -4,7 +4,7 @@ angular.module('chat').directive('chatWindow', function () {
         restrict: 'E',
         scope: {
             chatid: '<',
-            participants: '<'
+            userownname: '<'
         },
         templateUrl: 'chatApp/components/chatWindow/chatWindow.html',
         controller: 'ChatWindowCtrl',

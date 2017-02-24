@@ -11,8 +11,6 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     vm.participants = [];
     vm.messages = [];
     vm.chatHeader = '';
-
-
     vm.destroyChatWindow = destroyChatWindow;
     vm.scrollChatToBottom = scrollChatToBottom;
     vm.focusInput = focusInput;
@@ -22,7 +20,6 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     vm.sendMessage = sendMessage;
 
     vm.ownId = localStorage.getItem('accessToken');
-    vm.chatTitle = 'Chat name';
     vm.isDisplayingSearchResult = false;
     vm.enableSearch = false;
     vm.searchedMessage = '';
@@ -54,9 +51,9 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     function getChatHistory() {
         chatService.getChatHistory(vm.chatid)
             .then((messages) => {
-                vm.chatHeader = vm.chatid;
-                vm.messages = messages;
-                vm.participants = messages;
+                vm.chatHeader = messages.participants[0] !== $scope.userownname ? messages.participants[0] : messages.participants[1] ;
+                vm.messages = messages.messages;
+                vm.participants = messages.participants;
                 vm.scrollChatToBottom();
                 vm.focusInput();
             });

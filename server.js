@@ -22,7 +22,7 @@ let ChatUserRelation = mongoose.model('ChatUserRelation');
 let ChatMessage = mongoose.model('ChatMessage');
 
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
@@ -72,26 +72,26 @@ app.get('/chatIdForUsers', (req, res) => {
 
     for (let v in req.query.arrayOfUsersIds) {
         if (!req.query.arrayOfUsersIds[v] || req.query.arrayOfUsersIds[v] == "undefined") {
-            res.status(418).send({"message": "Not a valid request."});
+            res.status(418).send({ "message": "Not a valid request." });
             return;
         }
-        andArr.push({"participants": {$in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])]}})
+        andArr.push({ "participants": { $in: [mongoose.Types.ObjectId(req.query.arrayOfUsersIds[v])] } })
     }
-    andArr.push({"participants": {$size: req.query.arrayOfUsersIds.length}});
+    andArr.push({ "participants": { $size: req.query.arrayOfUsersIds.length } });
 
 
     ChatUserRelation
         .find(
-            {
-                $and: andArr
-            }
+        {
+            $and: andArr
+        }
         )
         .select('_id')
         .then((userData) => {
             if (userData[0]) {
                 res.json(userData[0]._id);
             } else {
-                res.status(418).send({"message": "No results found"});
+                res.status(418).send({ "message": "No results found" });
             }
         }).catch(console.log);
 });
@@ -130,13 +130,11 @@ app.get('/chatHistoryBrief', (req, res) => {
             {
                 $match: {
                     $or: [
-                        {creatorId: mongoose.Types.ObjectId(req.query.accessToken)},
-                        {participants: mongoose.Types.ObjectId(req.query.accessToken)}
+                        { creatorId: mongoose.Types.ObjectId(req.query.accessToken) },
+                        { participants: mongoose.Types.ObjectId(req.query.accessToken) }
                     ]
                 }
-            }
-
-            ,
+            },
             {
                 $lookup: {
                     from: "chatmessages",
@@ -154,68 +152,174 @@ app.get('/chatHistoryBrief', (req, res) => {
                 }
             },
             {
-                $sort:{ date : 1 }
+                $sort: { date: 1 }
             },
         ]).then(function (data) {
 
-        let result = [];
-        let chat, lastMessageInfo;
-        for (let v in data) {
-            chat = data[v];
-            lastMessageInfo = chat.ChatMessages[chat.ChatMessages.length - 1];
-            result.push({
-                id: chat._id,
-                isRoom: chat.participants.length > 2,
-                userId: chat.creatorId,
-                participants: chat.participants.map(function(part){
-                    return getUserById(chat.Users,part).fullName
-                }),
-                lastChatDate : lastMessageInfo.date,
-                lastChatMessageText : lastMessageInfo.message,
-                lastChatSender : {
-                    fullName: getUserById(chat.Users,lastMessageInfo.userId).fullName
-                }
-            })
-        }
-        res.json(result);
-    });
+            let result = [];
+            let chat, lastMessageInfo;
+            for (let v in data) {
+                chat = data[v];
+                lastMessageInfo = chat.ChatMessages[chat.ChatMessages.length - 1];
+                result.push({
+                    id: chat._id,
+                    isRoom: chat.participants.length > 2,
+                    userId: chat.creatorId,
+                    participants: chat.participants.map(function (part) {
+                        return getUserById(chat.Users, part).fullName
+                    }),
+                    lastChatDate: lastMessageInfo.date,
+                    lastChatMessageText: lastMessageInfo.message,
+                    lastChatSender: {
+                        fullName: getUserById(chat.Users, lastMessageInfo.userId).fullName
+                    }
+                })
+            }
+            res.json(result);
+        });
 });
 
-function getUserById(usersArray,userId){
-    for(let v in usersArray){
-        if(usersArray[v]._id+'' == userId+'') return usersArray[v];
+function getUserById(usersArray, userId) {
+    for (let v in usersArray) {
+        if (usersArray[v]._id + '' == userId + '') return usersArray[v];
     }
     return false;
 }
+
+app.get('/chatHistory', (req, res) => {
+    ChatUserRelation
+        .aggregate([
+            {
+                $match: { _id: mongoose.Types.ObjectId(req.query.chatId) }
+            },
+            {
+                $lookup: {
+                    from: "chatmessages",
+                    localField: "_id",
+                    foreignField: "chatId",
+                    as: "ChatMessages"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "participants",
+                    foreignField: "_id",
+                    as: "Users"
+                }
+            },
+            {
+                $sort: { date: 1 }
+            },
+        ]).then(function (data) {
+            console.log('data: ',data[0].ChatMessages);
+            let allUsers = data[0].Users;
+
+
+
+            let result = {
+                participants : data[0].participants.map((party)=>{
+                    return getUserById(allUsers,party).fullName
+                }),
+                messages : []
+            };
+            
+            for (let v in data[0].ChatMessages) {
+                message = data[0].ChatMessages[v];
+                // console.log(message);
+                result.messages.push({
+                    messageid: message._id,
+                    authorName: getUserById(allUsers,message.userId).fullName,
+                    userid: message.userId,
+                    date: message.date,
+                    message:message.message,
+                    messageType: 1 // TODO
+                })
+            }
+            console.log(result);
+            res.json(result);
+        });
+
+
+});
+//     ChatMessage
+//         .aggregate([
+//             {
+//                 $match: { chatId: mongoose.Types.ObjectId(req.query.chatId) }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "chatuserrelations",
+//                     localField: "chatId",
+//                     foreignField: "_id",
+//                     as: "chatInfo"
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: "users",
+//                     localField: "userId",
+//                     foreignField: "_id",
+//                     as: "users"
+//                 }
+//             }
+//         ])
+//         .then((messages) => {
+//             let participants = messages[0].chatInfo[0].participants.map((party)=>{
+//                 return getUserById(messages.users,party).fullName
+//             });
+//             console.log("MESSAGES", );
+//             // console.log("USER RELATIONS", messages[0].userRelations[0].participants);
+//             //getUserById(messages.users,messages[0].userRelations[0].participants).fullName;
+//             // let participant = [];
+//             // messages.forEach((msg) => {
+//             //     pa
+//             // })
+//             // console.log("USERS", messages[0].users[0].fullName);
+//         })
+// });
+
+// let result = {
+//     messages : messages
+// };
+
+
+// let result = [];
+// let usernames = joinedMsgData.filter((msgData) => {
+//     console.log('participants', msgData.userRelations)
+//     console.log('USERS', msgData.users)
+//     return msgData.userRelations.participants.includes(msgData.users[0]._id)
+// });
+// console.log(usernames);
+// joinedMsgData.forEach((msgData) => {
+//     console.log("USERS",msgData.users);
+//     console.log("USER RELATIONS",msgData.userRelations);
+
+//     let msg = {}
+// });
+
+// let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
+//     return {
+//         messageid: msg._id,
+//         authorName: 'Za sega Pesho', //TODO
+//         userid: msg.userid,
+//         date: msg.date,
+//         message: msg.message,
+//         messageType: 1 //TODO
+//     }
+// });
+
+// res.json(resMessages);
+// });
 
 app.get('/messagesBySearchstring', (req, res) => {
     let chatId = req.query.chatId;
     let regexp = new RegExp(req.query.searchedString, "gui");
     ChatMessage
-        .find({chatId: mongoose.Types.ObjectId(chatId), message: {$regex: regexp}})
+        .find({ chatId: mongoose.Types.ObjectId(chatId), message: { $regex: regexp } })
         .then((messages) => {
             res.json(messages);
         })
-});
-
-
-app.get('/chatHistory', (req, res) => {
-    ChatMessage
-        .find({chatId: mongoose.Types.ObjectId(req.query.chatId)})
-        .then((messages) => {
-            let resMessages = JSON.parse(JSON.stringify(messages)).map((msg) => {
-                return {
-                    messageid: msg._id,
-                    authorName: 'Za sega Pesho', //TODO
-                    userid: msg.userid,
-                    date: msg.date,
-                    message: msg.message,
-                    messageType: 1 //TODO
-                }
-            });
-
-            res.json(resMessages);
-        });
 });
 
 // app.get('/getMatchingUsername', (req, res) => {
@@ -245,10 +349,10 @@ app.post('/login', (req, res) => {
     let reqUser = req.body;
     User.findOne(reqUser)
         .select('_id').then((user) => {
-        res.json({accessToken: user._id});
-    }).catch((err) => {
-        res.status(418).send('Invalid username and/or password');
-    });
+            res.json({ accessToken: user._id });
+        }).catch((err) => {
+            res.status(418).send('Invalid username and/or password');
+        });
 });
 
 app.post('/createChat', (req, res) => {
@@ -259,7 +363,7 @@ app.post('/createChat', (req, res) => {
         creatorId: creatorid,
         participants: participants
     }).save().then(function (response) {
-        res.json({"chatid": response._id});
+        res.json({ "chatid": response._id });
     });
 });
 
