@@ -27,7 +27,6 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     onInit();
 
     function onInit() {
-
         // Oppening the chat window :
         // if we don't have chat id we need to retreive it based
         // on the userId we are trying to chat to
