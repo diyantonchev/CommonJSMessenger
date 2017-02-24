@@ -223,7 +223,6 @@ app.get('/chatHistory', (req, res) => {
                 $sort: { date: 1 }
             },
         ]).then(function (data) {
-<<<<<<< HEAD
             let allUsers = data[0].Users;
 
 
@@ -250,35 +249,6 @@ app.get('/chatHistory', (req, res) => {
             console.log(result);
             res.json(result);
         }).catch(console.log);
-=======
-        let allUsers = data[0].Users;
-
-
-
-        let result = {
-            participants: data[0].participants.map((party) => {
-                return getUserById(allUsers, party).fullName
-            }),
-            messages: []
-        };
-
-        for (let v in data[0].ChatMessages) {
-            message = data[0].ChatMessages[v];
-            // console.log(message);
-            result.messages.push({
-                messageid: message._id,
-                authorName: getUserById(allUsers, message.userId).fullName,
-                userid: message.userId,
-                date: message.date,
-                message: message.message,
-                messageType: 1 // TODO
-            })
-        }
-        res.json(result);
-    });
->>>>>>> bdb555da298ed6e2ec418d9acdb6084be07506b2
-
-
 });
 
 
