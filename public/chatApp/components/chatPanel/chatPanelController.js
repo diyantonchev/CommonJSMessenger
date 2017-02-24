@@ -32,7 +32,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
             };
             saveUserSettings();
         }
-        console.log('return readUserSettings', vm.userSettings);
         return vm.userSettings;
     }
 

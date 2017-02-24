@@ -21,6 +21,7 @@ function MainCtrl(authService) {
 
     vm.logout = function () {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('userSettings');
         location.reload();
     };
 
