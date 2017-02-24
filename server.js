@@ -28,44 +28,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
 console.log('MongoDB up and running!');
 
-// INSERTING VALUESSSSS
-app.get('/fillChats', (req, res) => {
-
-    // qwerty   =   589dbe874a1dad6d2e933fce
-    // Syla     =   58876339aee27b2a20f1e80e
-    // Drago    =   5887636bd31e7119948abad9
-
-
-    // new ChatUserRelation(
-    //     {
-    //         "creatorId": req.query.accessToken || "589dbe874a1dad6d2e933fce",
-    //         "participants": [
-    //             "589dbe874a1dad6d2e933fce",
-    //             "58876339aee27b2a20f1e80e"
-    //         ]
-    //     }
-    // ).save(function (err, msg) {
-    //     console.log('ChatUserRelation --> ', msg);
-    // });
-
-    // Adding chat messages to this chat
-    // new ChatMessage({
-    //     chatId: "58a599029c87b61b600fa279",
-    //     userId: "589dbe874a1dad6d2e933fce",
-    //     message: "Hi alll",
-    //     date: new Date(2017,1,14)
-    // }).save();
-    // new ChatMessage({
-    //     chatId: "58a599029c87b61b600fa279",
-    //     userId: "58876339aee27b2a20f1e80e",
-    //     message: "Hey, нямам какво да добавя",
-    //     date: new Date(2017,1,14)
-    // }).save();
-});
 
 // GET REQUESTS
-
-
 app.get('/chatIdForUsers', (req, res) => {
     let inArr = [];
     let andArr = [];
@@ -187,12 +151,6 @@ app.get('/chatHistoryBrief', (req, res) => {
         }).catch(console.log);
 });
 
-function getUserById(usersArray, userId) {
-    for (let v in usersArray) {
-        if (usersArray[v]._id + '' == userId + '') return usersArray[v];
-    }
-    return false;
-}
 
 app.get('/chatHistory', (req, res) => {
     ChatUserRelation
@@ -293,13 +251,7 @@ app.post('/createChat', (req, res) => {
     }).catch(console.log);
 });
 
-Object.size = function (obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-};
+
 var onlineUsers = {};
 io.sockets.on('connection', (client) => {
 
@@ -369,3 +321,19 @@ io.sockets.on('connection', (client) => {
 http.listen(port, () => {
     console.log(`The server is listening on port: ${port}`);
 });
+
+
+Object.size = function (obj) {
+    let size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
+function getUserById(usersArray, userId) {
+    for (let v in usersArray) {
+        if (usersArray[v]._id + '' == userId + '') return usersArray[v];
+    }
+    return false;
+}
