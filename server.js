@@ -134,8 +134,6 @@ app.get('/fullNamesByString', (req, res) => {
 
 
 app.get('/chatHistoryBrief', (req, res) => {
-    console.log('CHAT HISTORY BRIEF')
-    console.log(req.query)
     ChatUserRelation
         .aggregate([
             {
@@ -166,7 +164,6 @@ app.get('/chatHistoryBrief', (req, res) => {
                 $sort: { date: 1 }
             },
         ]).then(function (data) {
-            console.log("DATA",data)
             let result = [];
             let chat, lastMessageInfo;
             for (let v in data) {
@@ -236,7 +233,6 @@ app.get('/chatHistory', (req, res) => {
 
             for (let v in data[0].ChatMessages) {
                 message = data[0].ChatMessages[v];
-                // console.log(message);
                 result.messages.push({
                     messageid: message._id,
                     authorName: getUserById(allUsers, message.userId).fullName,
@@ -246,7 +242,6 @@ app.get('/chatHistory', (req, res) => {
                     messageType: 1 // TODO
                 })
             }
-            console.log(result);
             res.json(result);
         }).catch(console.log);
 });
@@ -335,7 +330,6 @@ io.sockets.on('connection', (client) => {
                                 let participant = result.participants[v];
                                 if (!onlineUsers[participant].client) continue;
                                 onlineUsers[participant].client.emit('new message', {
-
                                     messageid: response._id,
                                     chatId: response.chatId,
                                     date: response.date,
@@ -369,17 +363,6 @@ io.sockets.on('connection', (client) => {
         }
         console.log(client.id + ' went offline (' + Object.size(onlineUsers) + ')');
     });
-
-
-    // Server needs to be an ALL POSSIBLE ROOMS
-    // ChatUserRelation
-    //     .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
-    //     .select('_id')
-    //     .then((data) => {
-    //         for (let v in data) {
-    //             client.join(data[v]._id);
-    //         }
-    //     });
 });
 
 
