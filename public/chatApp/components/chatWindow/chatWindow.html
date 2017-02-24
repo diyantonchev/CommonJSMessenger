@@ -12,7 +12,7 @@
         <input type="text" ng-class="{enableSearch: vm.enableSearch}"  ng-model="vm.searchedMessage" ng-keyup="vm.getMessagesBySearchstring()" class="searchContainer" placeholder="Search messages">
     </section>
     <ul flex ng-class="{enableSearch: vm.enableSearch}" class="messages">
-        <li title="{{message.date | date:'medium'}}" ng-class="{ownMessage : message.userid === vm.ownId}" ng-repeat="message in vm.messages.messages">
+        <li title="{{message.date | date:'medium'}}" ng-class="{ownMessage : message.userid === vm.ownId}" ng-repeat="message in vm.messages">
             <div>{{message.message}}</div>
         </li>
     </ul>

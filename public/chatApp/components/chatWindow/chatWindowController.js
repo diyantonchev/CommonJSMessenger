@@ -51,10 +51,9 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     function getChatHistory() {
         chatService.getChatHistory(vm.chatid)
             .then((messages) => {
-                console.log(messages);
                 vm.chatHeader = messages.participants[0] !== $scope.userownname ? messages.participants[0] : messages.participants[1] ;
-                vm.messages = messages;
-                vm.participants = messages;
+                vm.messages = messages.messages;
+                vm.participants = messages.participants;
                 vm.scrollChatToBottom();
                 vm.focusInput();
             });
