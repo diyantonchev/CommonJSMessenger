@@ -44,13 +44,14 @@
 
                 <ul class="chatList">
                     <li class="noselect" ng-click="vm.openChatWindow(chat.id)" ng-repeat="chat in vm.currentUserInfo.chatHistory track by $index" layout="row">
-
+                        <md-tooltip>{{chat.id}}</md-tooltip>
                         <div class="avatar" layout="row"  layout-align="center center">
                             <md-icon>person</md-icon>
                         </div>
 
                         <div class="info" flex>
-                            <div class="fullName" ng-if="chat.participants.length > 2 ">{{chat.participants[0].fullName}} (+{{chat.participants.length - 1}})</div>
+                            <div class="fullName">{{chat.participants[0] == vm.currentUserInfo.fullName ? chat.participants[1] : chat.participants[0]}}<span ng-if="chat.participants.length > 2">(+{{chat.participants.length - 1}})</span></div>
+
                             <div class="fullName" ng-repeat="participant in chat.participants"  ng-if="chat.participants.length <= 2 && participant.id !== vm.accessToken">{{participant.fullName}}</div>
 
                             <div class="lastChatMessageText">{{chat.lastChatSender.fullName}}: {{chat.lastChatMessageText}}</div>

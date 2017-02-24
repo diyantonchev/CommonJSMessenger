@@ -92,14 +92,14 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     function createNewChatWindow(participants) {
-        let el = $compile(`<chat-window participants="'${participants}'"></chat-window>`)($scope);
+        let el = $compile(`<chat-window></chat-window>`)($scope);
         angular.element(document.querySelector('div.chat-container')).append(el);
     }
 
     function openChatWindow(chatid) {
         let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text]`);
         if (!matches) {
-            let el = $compile(`<chat-window chatid="'${chatid}'"></chat-window>`)($scope);
+            let el = $compile(`<chat-window chatid="'${chatid}'" userownname="'${vm.currentUserInfo.fullName}'"></chat-window>`)($scope);
             angular.element(document.querySelector('div.chat-container')).append(el);
         } else {
             angular.element(matches).focus();
