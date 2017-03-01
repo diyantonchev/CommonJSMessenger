@@ -215,17 +215,6 @@ app.get('/messagesBySearchstring', (req, res) => {
         })
 });
 
-
-app.get('/users', (req, res) => {
-    User
-        .find({})
-        .select('_id username fullName avatar')
-        .where('_id').ne(req.query.loggedUser)
-        .then((users) => {
-            res.json(users);
-        });
-});
-
 // POST REQUESTS
 app.post('/login', (req, res) => {
     let reqUser = req.body;

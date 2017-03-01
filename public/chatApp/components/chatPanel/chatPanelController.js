@@ -1,16 +1,10 @@
 angular.module('chat').controller('ChatPanelCtrl', ChatPanelCtrl);
 
-ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService', 'chatService', 'socketComunicationService', 'notifierService'];
+ChatPanelCtrl.$inject = ['$scope', '$timeout', '$q', '$compile', 'dataService', 'chatService', 'notifierService'];
 
-function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService, socketComunicationService, notifierService) {
-
+function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService, notifierService) {
     let vm = this;
-
     vm.chatToggle = true;
-
-
-
-// Variables
     vm.accessToken = localStorage.getItem('accessToken');
     vm.currentUserInfo = {
         fullName: '',
@@ -20,12 +14,19 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     vm.socket = io.connect();
     vm.socket.emit('user connected', {accessToken: vm.accessToken})
 
+    vm.autocompletePlaceholder = "Search all users";
 
-    vm.userSettings = readUserSettings();
+    vm.getFullNamesByString = getFullNamesByString;
+    vm.onAutocompleteSelect = onAutocompleteSelect;
+    vm.openChatWindow = openChatWindow;
+    vm.panelsToggle = panelsToggle;
+    vm.updateChatHistory = updateChatHistory;
+    vm.saveUserSettings = saveUserSettings;
+
+    onInit();
 
     function readUserSettings() {
         vm.userSettings = JSON.parse(localStorage.getItem('userSettings'));
-        console.log('readUserSettings', vm.userSettings);
         if (!vm.userSettings) {
             vm.userSettings = {
                 enableNotifications: true
@@ -36,40 +37,22 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
     }
 
     function saveUserSettings() {
-        $timeout(function(){
+        $timeout(function () {
             localStorage.setItem('userSettings', JSON.stringify(vm.userSettings));
-        },100)
+        }, 100)
     }
 
-// Strings
-    vm.autocompletePlaceholder = "Search all users";
-
-//Functions
-    vm.getFullNamesByString = getFullNamesByString;
-    vm.onAutocompleteSelect = onAutocompleteSelect;
-    vm.openChatWindow = openChatWindow;
-    vm.panelsToggle = panelsToggle;
-    vm.updateChatHistory = updateChatHistory;
-    vm.saveUserSettings = saveUserSettings;
-
-    onInit();
-
     function onInit() {
-        // Collecting currentUser info (AJAX)
+        vm.userSettings = readUserSettings();
         dataService.getCurrentUserInfo().then(function (data) {
             vm.currentUserInfo.fullName = data.fullName;
-            console.log("FULL NAME", vm.currentUserInfo.fullName);
             updateChatHistory();
         });
-
-        // Collecting currentUser chat History
-        //  vm.updateChatHistory();
     }
 
     function updateChatHistory() {
         chatService.getChatHistoryBrief().then(function (data) {
             vm.currentUserInfo.chatHistory = data;
-            console.log("CHAT HISTORY", vm.currentUserInfo.chatHistory);
         });
     }
 
@@ -92,21 +75,19 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         }
     }
 
-
     function openChatWindow(chatid) {
         let matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text].messageInput`);
-        if(matches){
+        if (matches) {
             angular.element(matches).focus();
         }
-        else{
+        else {
             let el = $compile(`<chat-window chatid="'${chatid}'" userownname="'${vm.currentUserInfo.fullName}'"></chat-window>`)($scope);
             angular.element(document.querySelector('div.chat-container')).append(el)
-            $timeout(function(){
+            $timeout(function () {
                 matches = document.querySelector(`chat-window[chatid="'${chatid}'"] input[type=text].messageInput`);
                 angular.element(matches).focus();
-            },100);
-        } 
-
+            }, 100);
+        }
     }
 
     vm.socket.on('new message notification', function (resp) {

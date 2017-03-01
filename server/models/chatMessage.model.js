@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 const chatSchema = new Schema({
     chatId: Schema.Types.ObjectId,
     userId: Schema.Types.ObjectId,
-    message : String,
-    date : Date
+    message: String,
+    date: Date
 });
 
 mongoose.model('ChatMessage', chatSchema);

@@ -46,7 +46,6 @@ function notifierService() {
             console.error('Desktop notifications not available');
             return;
         }
-
         if (Notification.permission !== "granted"){
             Notification.requestPermission();
         }else {

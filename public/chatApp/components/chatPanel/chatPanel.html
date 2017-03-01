@@ -10,13 +10,9 @@
         <h1>{{vm.currentUserInfo.fullName}}</h1>
     </section>
 
-
-
     <md-content flex>
         <md-tabs md-dynamic-height md-center-tabs md-stretch-tabs="always" md-no-pagination>
-
             <md-tab label="History" class="user-tab">
-
                 <md-toolbar class="toolbar" layout="column" layout-align="center center">
                     <div flex class="md-toolbar-tools" layout="row">
                         <md-autocomplete
@@ -47,14 +43,12 @@
                         <div class="avatar" layout="row"  layout-align="center center">
                             <md-icon>{{chat.participants.length <= 2 ? 'person': 'group_add'}}</md-icon>
                         </div>
-
                         <div class="info" flex>
                             <div class="fullName">{{chat.participants[0] == vm.currentUserInfo.fullName ? chat.participants[1] : chat.participants[0]}}<span ng-if="chat.participants.length > 2">(+{{chat.participants.length - 1}})</span></div>
                             <div class="fullName" ng-repeat="participant in chat.participants"  ng-if="chat.participants.length <= 2 && participant.id !== vm.accessToken">{{participant.fullName}}</div>
                             <div class="lastChatMessageText">{{chat.lastChatSender.fullName}}: {{chat.lastChatMessageText}}</div>
                             <div class="lastChatDate">{{chat.lastChatDate | date:'medium'}}</div>
                         </div>
-
                     </li>
                 </ul>
 
@@ -74,12 +68,3 @@
 
 
 <div class="chat-container"></div>
-
-<!--<chat-window-->
-        <!--toggled="vm.singleToggle"-->
-        <!--chat-instance="vm.chatInstance"-->
-        <!--msg-send-function="vm.sendMsgToChatInstance"-->
-        <!--file-upload="vm.fileUpload"-->
-        <!--file-download="vm.fileDownload"-->
-<!--&gt;-->
-<!--</chat-window>-->

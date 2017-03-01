@@ -1,8 +1,7 @@
-angular.module('chat',
-    [
-        'ngAnimate',
-        'ngMaterial',
-        'ngMdIcons',
-        'ui.router',
-        'ngSanitize'
-    ]);
+angular.module('chat', [
+    'ngAnimate',
+    'ngMaterial',
+    'ngMdIcons',
+    'ui.router',
+    'ngSanitize'
+]);
