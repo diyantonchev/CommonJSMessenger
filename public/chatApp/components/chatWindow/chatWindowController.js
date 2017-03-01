@@ -7,22 +7,19 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
     let vm = this;
 
     vm.chatid = $scope.chatid;
-
     vm.participants = [];
     vm.messages = [];
     vm.chatHeader = '';
-    vm.destroyChatWindow = destroyChatWindow;
-    vm.scrollChatToBottom = scrollChatToBottom;
-    vm.focusInput = focusInput;
-    vm.getMessagesBySearchstring = getMessagesBySearchstring;
-
-
-    vm.sendMessage = sendMessage;
-
     vm.ownId = localStorage.getItem('accessToken');
     vm.isDisplayingSearchResult = false;
     vm.enableSearch = false;
     vm.searchedMessage = '';
+
+    vm.destroyChatWindow = destroyChatWindow;
+    vm.scrollChatToBottom = scrollChatToBottom;
+    vm.focusInput = focusInput;
+    vm.getMessagesBySearchstring = getMessagesBySearchstring;
+    vm.sendMessage = sendMessage;
 
     onInit();
 
@@ -46,11 +43,10 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
         }
     }
 
-
     function getChatHistory() {
         chatService.getChatHistory(vm.chatid)
             .then((messages) => {
-                vm.chatHeader = messages.participants[0] !== $scope.userownname ? messages.participants[0] : messages.participants[1] ;
+                vm.chatHeader = messages.participants[0] !== $scope.userownname ? messages.participants[0] : messages.participants[1];
                 vm.messages = messages.messages;
                 vm.participants = messages.participants;
                 vm.scrollChatToBottom();
@@ -75,7 +71,7 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
 
     function sendMessage(event) {
         if (event.keyCode == 13 && vm.userMessage) {
-            $scope.$parent.vm.socket.emit('message', { message: vm.userMessage, chatid: vm.chatid, userid: vm.ownId });
+            $scope.$parent.vm.socket.emit('message', {message: vm.userMessage, chatid: vm.chatid, userid: vm.ownId});
         }
     }
 
@@ -95,7 +91,6 @@ function ChatWindowCtrl($scope, $timeout, $element, chatService) {
         $element.focus();
     }
 
-    // callback
     $scope.$parent.vm.socket.on('new message', (response) => {
         if (response.message && response.chatId == vm.chatid) {
             vm.userMessage = '';

@@ -5,7 +5,6 @@ chatService.$inject = ['$http'];
 
 function chatService($http) {
     let service = {
-        openChat: openChat, // open chat window with given chatID
         createChat: createChat, // open chat window with given chatID
         getChatIdForUsers: getChatIdForUsers, // open chat window with given chatID
         getChatHistoryBrief: getChatHistoryBrief, // open chat window with given user ID (search in DB for existing chat session with selected user ONLY)
@@ -24,9 +23,6 @@ function chatService($http) {
         }).then((response) => {
             return response.data;
         }).catch(console.err);
-    }
-    function openChat(chatid) {
-        console.log('openChat -->chatid', chatid);
     }
 
     function getChatHistory(chatId, lastMessageId) {

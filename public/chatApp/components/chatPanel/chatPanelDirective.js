@@ -1,5 +1,4 @@
 angular.module('chat').directive('chatPanel', function () {
-
     return {
         restrict: 'E',
         scope: {
@@ -11,6 +10,3 @@ angular.module('chat').directive('chatPanel', function () {
         controllerAs: 'vm'
     }
 });
-
-
-
