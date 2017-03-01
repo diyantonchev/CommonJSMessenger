@@ -88,7 +88,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         if (userId) {
             chatService.getChatIdForUsers([vm.accessToken, userId]).then(function (chatId) {
                 vm.openChatWindow(chatId);
-                updateChatHistory()
             });
         }
     }
@@ -117,7 +116,6 @@ function ChatPanelCtrl($scope, $timeout, $q, $compile, dataService, chatService,
         vm.updateChatHistory();
         window.focus();
     });
-
 
     function panelsToggle() {
         vm.chatToggle = !vm.chatToggle;

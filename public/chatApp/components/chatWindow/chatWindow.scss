@@ -1,88 +1,85 @@
 chat-window {
-  width: 300px;
-  height: 400px;
-  display: inline-block;
-  border: 1px solid #cecece;
-  margin: 3px;
-  section {
-    &.header {
-      background-color: #9fa8bc;
-      h2 {
-        text-transform: uppercase;
-        font-size: 12px;
-        font-weight: 700;
-        color: #313745;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        padding: 5px 10px;
-      }
-      .searchContainer {
-          box-sizing: border-box;
-          font-size: 12px;
-          height: 0;
-          transition: all 500ms;
-          overflow: hidden;
-          margin: 0;
-          padding: 0 12px;
-          color: #262b36;
-          background-color: #FCFCFD;
-          border: 1px solid #bdc3d1;
-          &.enableSearch{
-            height: 30px;
-            border: 1px solid #bdc3d1;
-            padding: 10px 12px;
-          &:focus{
-            outline: none;
-            background-color: #fff;
-            border-color: #9fa8bc;
-          }
+    width: 300px;
+    height: 400px;
+    display: inline-block;
+    border: 1px solid #cecece;
+    margin: 3px;
+    section {
+        &.header {
+            background-color: #9fa8bc;
+            h2 {
+                text-transform: uppercase;
+                font-size: 12px;
+                font-weight: 700;
+                color: #313745;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                padding: 5px 10px;
+            }
+            .searchContainer {
+                box-sizing: border-box;
+                font-size: 12px;
+                height: 0;
+                transition: all 500ms;
+                overflow: hidden;
+                margin: 0;
+                padding: 0 12px;
+                color: #262b36;
+                background-color: #FCFCFD;
+                border: 1px solid #bdc3d1;
+                &.enableSearch {
+                    height: 30px;
+                    border: 1px solid #bdc3d1;
+                    padding: 10px 12px;
+                    &:focus {
+                        outline: none;
+                        background-color: #fff;
+                        border-color: #9fa8bc;
+                    }
+                }
+            }
         }
-      }
     }
-  }
-
-  ul.messages {
-    transition: all 500ms;
-    height: 336px;
-    padding: 5px;
-    margin: 0;
-    overflow: auto;
-    &.enableSearch{
-      height: 306px;
+    ul.messages {
+        transition: all 500ms;
+        height: 336px;
+        padding: 5px;
+        margin: 0;
+        overflow: auto;
+        &.enableSearch {
+            height: 306px;
+        }
+        li {
+            cursor: pointer;
+            list-style: none;
+            margin-bottom: 20px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.42857143;
+            color: #696c74;
+            padding: 5px;
+            border-radius: 6px;
+            background-color: #edeaff;
+        }
+        li.ownMessage {
+            text-align: right;
+            color: #fff;
+            background-color: #9fa8bc;
+        }
     }
-    li {
-      cursor: pointer;
-      list-style: none;
-      margin-bottom: 20px;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 12px;
-      line-height: 1.42857143;
-      color: #696c74;
-      padding: 5px;
-      border-radius: 6px;
-      background-color: #edeaff;
+    .user-input {
+        input[type="text"] {
+            border: 1px solid silver;
+            margin: 0;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.42857143;
+            color: #696c74;
+            padding: 2px 5px;
+        }
     }
-    li.ownMessage {
-      text-align: right;
-      color: #fff;
-      background-color: #9fa8bc;
-    }
-  }
-
-  .user-input {
-    input[type="text"] {
-      border: 1px solid silver;
-      margin: 0;
-      width: 100%;
-      box-sizing: border-box;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 12px;
-      line-height: 1.42857143;
-      color: #696c74;
-      padding: 2px 5px;
-    }
-  }
-
 }

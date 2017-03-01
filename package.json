@@ -8,18 +8,15 @@
     "start": "gulp compile-sass | node server.js"
   },
   "devDependencies": {
-    "express": "^4.14.0",
+    "gulp-shell": "^0.5.2",
     "gulp": "^3.9.1",
     "gulp-sass": "^3.1.0",
-    "gulp-sourcemaps": "^2.4.0",
-    "mongoose": "^4.7.6",
-    "socket.io": "^1.7.2",
-    "body-parser": "1.15.2"
+    "gulp-sourcemaps": "^2.4.0"
   },
   "dependencies": {
-    "async": "^2.1.5",
-    "gulp-shell": "^0.5.2",
-    "socket.io-stream": "^0.9.1",
-    "socketio-file-upload": "^0.6.0"
+    "body-parser": "1.15.2",
+    "express": "^4.14.0",
+    "mongoose": "^4.7.6",
+    "socket.io": "^1.7.2"
   }
 }
