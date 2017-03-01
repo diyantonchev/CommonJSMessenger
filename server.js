@@ -28,44 +28,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 mongoose.connect(connection);
 console.log('MongoDB up and running!');
 
-// INSERTING VALUESSSSS
-app.get('/fillChats', (req, res) => {
-
-    // qwerty   =   589dbe874a1dad6d2e933fce
-    // Syla     =   58876339aee27b2a20f1e80e
-    // Drago    =   5887636bd31e7119948abad9
-
-
-    // new ChatUserRelation(
-    //     {
-    //         "creatorId": req.query.accessToken || "589dbe874a1dad6d2e933fce",
-    //         "participants": [
-    //             "589dbe874a1dad6d2e933fce",
-    //             "58876339aee27b2a20f1e80e"
-    //         ]
-    //     }
-    // ).save(function (err, msg) {
-    //     console.log('ChatUserRelation --> ', msg);
-    // });
-
-    // Adding chat messages to this chat
-    // new ChatMessage({
-    //     chatId: "58a599029c87b61b600fa279",
-    //     userId: "589dbe874a1dad6d2e933fce",
-    //     message: "Hi alll",
-    //     date: new Date(2017,1,14)
-    // }).save();
-    // new ChatMessage({
-    //     chatId: "58a599029c87b61b600fa279",
-    //     userId: "58876339aee27b2a20f1e80e",
-    //     message: "Hey, нямам какво да добавя",
-    //     date: new Date(2017,1,14)
-    // }).save();
-});
 
 // GET REQUESTS
-
-
 app.get('/chatIdForUsers', (req, res) => {
     let inArr = [];
     let andArr = [];
@@ -134,8 +98,6 @@ app.get('/fullNamesByString', (req, res) => {
 
 
 app.get('/chatHistoryBrief', (req, res) => {
-    console.log('CHAT HISTORY BRIEF')
-    console.log(req.query)
     ChatUserRelation
         .aggregate([
             {
@@ -166,7 +128,6 @@ app.get('/chatHistoryBrief', (req, res) => {
                 $sort: { date: 1 }
             },
         ]).then(function (data) {
-            console.log("DATA",data)
             let result = [];
             let chat, lastMessageInfo;
             for (let v in data) {
@@ -190,12 +151,6 @@ app.get('/chatHistoryBrief', (req, res) => {
         }).catch(console.log);
 });
 
-function getUserById(usersArray, userId) {
-    for (let v in usersArray) {
-        if (usersArray[v]._id + '' == userId + '') return usersArray[v];
-    }
-    return false;
-}
 
 app.get('/chatHistory', (req, res) => {
     ChatUserRelation
@@ -236,7 +191,6 @@ app.get('/chatHistory', (req, res) => {
 
             for (let v in data[0].ChatMessages) {
                 message = data[0].ChatMessages[v];
-                // console.log(message);
                 result.messages.push({
                     messageid: message._id,
                     authorName: getUserById(allUsers, message.userId).fullName,
@@ -246,7 +200,6 @@ app.get('/chatHistory', (req, res) => {
                     messageType: 1 // TODO
                 })
             }
-            console.log(result);
             res.json(result);
         }).catch(console.log);
 });
@@ -298,13 +251,7 @@ app.post('/createChat', (req, res) => {
     }).catch(console.log);
 });
 
-Object.size = function (obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) size++;
-    }
-    return size;
-};
+
 var onlineUsers = {};
 io.sockets.on('connection', (client) => {
 
@@ -335,7 +282,6 @@ io.sockets.on('connection', (client) => {
                                 let participant = result.participants[v];
                                 if (!onlineUsers[participant].client) continue;
                                 onlineUsers[participant].client.emit('new message', {
-
                                     messageid: response._id,
                                     chatId: response.chatId,
                                     date: response.date,
@@ -369,20 +315,25 @@ io.sockets.on('connection', (client) => {
         }
         console.log(client.id + ' went offline (' + Object.size(onlineUsers) + ')');
     });
-
-
-    // Server needs to be an ALL POSSIBLE ROOMS
-    // ChatUserRelation
-    //     .find({$or: [{creatorId: req.query.accessToken}, {participants: req.query.accessToken}]})
-    //     .select('_id')
-    //     .then((data) => {
-    //         for (let v in data) {
-    //             client.join(data[v]._id);
-    //         }
-    //     });
 });
 
 
 http.listen(port, () => {
     console.log(`The server is listening on port: ${port}`);
 });
+
+
+Object.size = function (obj) {
+    let size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
+function getUserById(usersArray, userId) {
+    for (let v in usersArray) {
+        if (usersArray[v]._id + '' == userId + '') return usersArray[v];
+    }
+    return false;
+}
